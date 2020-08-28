@@ -46,6 +46,22 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   return -1;
 }
 
+void get_value(char * info, char *json_blob, char *seek, int levels){
+  int r;
+  jsmn_parser p;
+  jsmntok_t t[128];
+
+  jsmn_init(&p);
+  r = jsmn_parse(&p, json_blob, strlen(json_blob), t, sizeof(t) / sizeof(t[0]));
+  for (int i = 1; i < r; i++) {
+    if (jsoneq(json_blob, &t[i], seek) == 0) {
+      // char data[1000]; // I'm guessing this'll be less than 1000 characters.
+      snprintf(info, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
+             json_blob + t[i + 1].start);
+    }
+  }
+}
+
 /* OCTOPRINT STUFF */
 
 // Query the octoprint server for data.
