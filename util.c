@@ -47,39 +47,42 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   return -1;
 }
 
+// Parse through a JSON blob recursively to acquire a specific key.
 char *get_value(char *json_blob, char *seek){
-  // printf("I'm looking for (%s) and here's what we got to work with: %s\n", seek, json_blob);
+  // Set up all the shit we need
   int r;
   jsmn_parser p;
   jsmntok_t t[128];
   char *data;
 
+  // Initialize JSMN
   jsmn_init(&p);
   r = jsmn_parse(&p, json_blob, strlen(json_blob), t, sizeof(t) / sizeof(t[0]));
   for (int i = 1; i < r; i++) {
-    if (jsoneq(json_blob, &t[i], seek) == 0) {
+    // If we find what we're looking for, grab it and return it.
+    if (jsoneq(json_blob, &t[i], seek) == 0)
+    {
       data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
       snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
              json_blob + t[i + 1].start);
-      // printf("Hey we got it! %s\n", data);
       return data;
-    } else if ((&t[i])->type == JSMN_OBJECT) {
-      // printf("Found an object.");
-      // Love code duplication.
+    }
+
+    // If not, but we do find another object, check to see if what we're
+    // looking for is in that object.
+    else if ((&t[i])->type == JSMN_OBJECT)
+    {
+      // I Love code duplication.
       data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
       snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
              json_blob + t[i + 1].start);
-      // printf("yeet this shit! %s", data);
       char *keep_looking = get_value(data, seek);
       free(data);
-      // if (data) free(data);
-      // return keep_looking;
     }
   }
-  // printf("This ain't it, chief!\n");
-  // printf(json_blob);
-  // printf("Fuccin WACK!");
-  return "Couldn't find anything!";
+  // If the JSON doesn't contain the key you're looking for, then return this.
+  char *fail = "Couldn't find anything!";
+  return fail;
 }
 
 /* OCTOPRINT STUFF */
@@ -97,7 +100,6 @@ char * call_octoprint(char *api_call, char *key){
     init_string(&s);
 
     curl_easy_setopt(curl, CURLOPT_URL, api_call);
-    // printf(key);
     char keybase[32+11] = "X-Api-Key: "; // Memory really do be like that.
     strcat(keybase, key);
     list = curl_slist_append(list, keybase);
@@ -105,10 +107,6 @@ char * call_octoprint(char *api_call, char *key){
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
     res = curl_easy_perform(curl);
-
-    // printf("%s\n", s.ptr);
-    // free(s.ptr);
-
     /* always cleanup */
     curl_slist_free_all(list);
     curl_easy_cleanup(curl);
