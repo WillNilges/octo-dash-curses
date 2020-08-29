@@ -3,7 +3,7 @@
 #include <string.h>
 // #include <ncurses.h> // TODO :)
 // #include "jsmn.h"
-#include "util.c" // TODO: Is this how project structures work?
+#include "util.h"
 
 int main(void)
 {
@@ -29,8 +29,10 @@ int main(void)
   strcpy(address, addr);
   strcat(address, call);
   char *job = call_octoprint(address, key);
+
   char *user = get_value(job, "user");
   printf("Username: %s\n", user);
+
   char *name = get_value(job, "name");
   printf("Currently Printing: %s\n", name);
 
@@ -43,6 +45,8 @@ int main(void)
   // Clean up and exit.
   free(user);
   free(job);
+  free(time_spent);
+  free(percent_complete);
   free(name);
   return 0;
 }
