@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 // #include <ncurses.h> // TODO :)
-#include "jsmn.h"
+// #include "jsmn.h"
 #include "util.c" // TODO: Is this how project structures work?
 
 int main(void)
@@ -11,8 +11,17 @@ int main(void)
   char *key = getenv("OCTOKEY");
   char *addr = getenv("OCTOADDR");
 
-  // Let's see if we can get the username of whoever is currently printing,
-  // and what they are currently printing.
+  if (key == NULL) {
+    printf("We need an API key, fool! Come back when you have one!\n");
+    return 1;
+  }
+
+  if (addr == NULL) {
+    printf("We need an address, fool! Come back when you have one!\n");
+    return 1;
+  }
+
+  // Let's get some basic info about what's printing.
   char *call = "/api/job"; // Or whatever api call you wanna make.
 
   // Construct the curl URL
@@ -24,7 +33,13 @@ int main(void)
   printf("Username: %s\n", user);
   char *name = get_value(job, "name");
   printf("Currently Printing: %s\n", name);
-  
+
+  char *time_spent = get_value(job, "printTime");
+  printf("Time spent: %s\n", time_spent);
+
+  char *percent_complete = get_value(job, "completion");
+  printf("Percent completion: %s\n", percent_complete);
+
   // Clean up and exit.
   free(user);
   free(job);

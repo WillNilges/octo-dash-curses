@@ -1,5 +1,5 @@
 #include <curl/curl.h>
-// #include "jsmn.h"
+#include "jsmn.h"
 
 
 /* STRING STUFF */
