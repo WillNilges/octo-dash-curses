@@ -1,6 +1,6 @@
 cc=gcc
 
-octo: build/main.o build/util.o
+octodashcurses: build/main.o build/util.o
 	gcc -o $@ -lcurl $^ -I.
 
 build/%.o: src/%.c
