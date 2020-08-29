@@ -2,3 +2,6 @@
 .address
 vgcore.*
 a.out
+octodashcurses
+build
+build/*

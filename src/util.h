@@ -4,11 +4,6 @@
 #include <string.h>
 #include "jsmn.h"
 
-// typedef struct string_t {
-//   char *ptr;
-//   size_t len;
-// } string;
-
 // Boneless string, becaue I don't feel like figuring out how long these
 // strings are.
 struct string {
