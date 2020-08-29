@@ -1,5 +1,9 @@
-# main: main.c
-# 	gcc -lcurl main.c
+cc=gcc
 
-main: main.c util.c
-	gcc -o octodashcurses -lcurl main.c util.c -I.
+octo: build/main.o build/util.o
+	gcc -o $@ -lcurl $^ -I.
+
+build/%.o: src/%.c
+	@mkdir -p $(@D)
+	@printf "  CC      $(*).c\n"
+	$(PREFIX)$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<

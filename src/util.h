@@ -1,10 +1,20 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-typedef struct string_t {
+#include <string.h>
+#include "jsmn.h"
+
+// typedef struct string_t {
+//   char *ptr;
+//   size_t len;
+// } string;
+
+// Boneless string, becaue I don't feel like figuring out how long these
+// strings are.
+struct string {
   char *ptr;
   size_t len;
-} string;
+};
 
 void init_string(struct string *s);
 
