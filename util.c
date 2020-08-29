@@ -1,6 +1,7 @@
 #include <curl/curl.h>
+#include <stdlib.h>
+#include <string.h>
 #include "jsmn.h"
-
 
 /* STRING STUFF */
 
@@ -88,7 +89,7 @@ char *get_value(char *json_blob, char *seek){
 /* OCTOPRINT STUFF */
 
 // Query the octoprint server for data.
-char * call_octoprint(char *api_call, char *key){
+char *call_octoprint(char *api_call, char *key){
   CURL *curl;
   CURLcode res;
 
