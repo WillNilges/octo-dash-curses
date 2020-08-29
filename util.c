@@ -38,6 +38,7 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
 }
 
 /* JSON STUFF */
+
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
       strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
@@ -46,20 +47,39 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   return -1;
 }
 
-void get_value(char * info, char *json_blob, char *seek, int levels){
+char *get_value(char *json_blob, char *seek){
+  // printf("I'm looking for (%s) and here's what we got to work with: %s\n", seek, json_blob);
   int r;
   jsmn_parser p;
   jsmntok_t t[128];
+  char *data;
 
   jsmn_init(&p);
   r = jsmn_parse(&p, json_blob, strlen(json_blob), t, sizeof(t) / sizeof(t[0]));
   for (int i = 1; i < r; i++) {
     if (jsoneq(json_blob, &t[i], seek) == 0) {
-      // char data[1000]; // I'm guessing this'll be less than 1000 characters.
-      snprintf(info, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
+      data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
+      snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
              json_blob + t[i + 1].start);
+      // printf("Hey we got it! %s\n", data);
+      return data;
+    } else if ((&t[i])->type == JSMN_OBJECT) {
+      // printf("Found an object.");
+      // Love code duplication.
+      data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
+      snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
+             json_blob + t[i + 1].start);
+      // printf("yeet this shit! %s", data);
+      char *keep_looking = get_value(data, seek);
+      free(data);
+      // if (data) free(data);
+      // return keep_looking;
     }
   }
+  // printf("This ain't it, chief!\n");
+  // printf(json_blob);
+  // printf("Fuccin WACK!");
+  return "Couldn't find anything!";
 }
 
 /* OCTOPRINT STUFF */
