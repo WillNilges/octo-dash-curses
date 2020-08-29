@@ -1,16 +1,8 @@
 #include <curl/curl.h>
 #include <stdlib.h>
-#include <string.h>
-#include "jsmn.h"
+#include "util.h"
 
 /* STRING STUFF */
-
-// Boneless string, becaue I don't feel like figuring out how long these
-// strings are.
-struct string {
-  char *ptr;
-  size_t len;
-};
 
 void init_string(struct string *s) {
   s->len = 0;
@@ -23,8 +15,7 @@ void init_string(struct string *s) {
 }
 
 // Function to dump curl responses into strings.
-size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
-{
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
   size_t new_len = s->len + size*nmemb;
   s->ptr = realloc(s->ptr, new_len+1);
   if (s->ptr == NULL) {
