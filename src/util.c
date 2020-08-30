@@ -100,7 +100,7 @@ char *get_value(char *json_blob, char *seek){
 /* OCTOPRINT STUFF */
 
 // Query the octoprint server for data.
-char *call_octoprint(char *api_call, char *key){
+char *call_octoprint(char *api_call, const char *key){
   CURL *curl;
   CURLcode res;
 
@@ -119,6 +119,9 @@ char *call_octoprint(char *api_call, char *key){
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
     res = curl_easy_perform(curl);
+    if (res != 0) {
+        return "-1";
+    }
     /* always cleanup */
     curl_slist_free_all(list);
     curl_easy_cleanup(curl);

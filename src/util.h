@@ -21,6 +21,6 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 
 char *get_value(char *json_blob, char *seek);
 
-char *call_octoprint(char *api_call, char *key);
+char *call_octoprint(char *api_call, const char *key);
 
 #endif
