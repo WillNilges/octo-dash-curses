@@ -1,7 +1,7 @@
 cc=gcc
 
-octodashcurses: build/main.o build/util.o build/jsmn.o
-	gcc -o $@ -lcurl -lncurses $^ -I.
+odc: build/main.o build/util.o build/jsmn.o
+	gcc -o $@ -lcurl -lncurses -lm -lconfig $^ -I.
 
 build/%.o: src/%.c
 	@mkdir -p $(@D)
@@ -10,3 +10,7 @@ build/%.o: src/%.c
 
 clean:
 	rm -rf build
+	rm odc
+
+run:
+	./odc
