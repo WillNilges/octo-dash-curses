@@ -29,6 +29,28 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
   return size*nmemb;
 }
 
+char *format_time(char *time_seconds) {
+  int int_time_seconds = atoi(time_seconds);
+
+  char *parsed_time;
+
+  int seconds = int_time_seconds % 60;
+  int minutes = (int_time_seconds / 60) % 60;
+  int hours = int_time_seconds / 3600;
+
+  // I am a lazy bitch
+  parsed_time = (char *) malloc(100);
+  snprintf(
+    parsed_time,
+    100,
+    "%d hr, %d min, %d sec",
+    hours,
+    minutes,
+    seconds
+  );
+  return parsed_time;
+}
+
 /* JSON STUFF */
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
@@ -52,8 +74,7 @@ char *get_value(char *json_blob, char *seek){
   r = jsmn_parse(&p, json_blob, strlen(json_blob), t, sizeof(t) / sizeof(t[0]));
   for (int i = 1; i < r; i++) {
     // If we find what we're looking for, grab it and return it.
-    if (jsoneq(json_blob, &t[i], seek) == 0)
-    {
+    if (jsoneq(json_blob, &t[i], seek) == 0) {
       data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
       snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
              json_blob + t[i + 1].start);
@@ -62,8 +83,7 @@ char *get_value(char *json_blob, char *seek){
 
     // If not, but we do find another object, check to see if what we're
     // looking for is in that object.
-    else if ((&t[i])->type == JSMN_OBJECT)
-    {
+    else if ((&t[i])->type == JSMN_OBJECT) {
       // I Love code duplication.
       data = (char *) malloc(1000); // I'm guessing this'll be less than 1kb.
       snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
