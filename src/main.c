@@ -14,6 +14,7 @@ int main(void)
   config_setting_t *setting;
   const char *addr;
   const char *key;
+  int refresh;
 
   config_init(&cfg);
 
@@ -31,6 +32,8 @@ int main(void)
 
   // Get key
   config_lookup_string(&cfg, "key", &key);
+
+  config_lookup_int(&cfg, "refresh", &refresh);
 
   // Let's get some basic info about what's printing.
   char *call = "/api/job";
@@ -86,17 +89,17 @@ int main(void)
     attroff(A_BOLD);
     float float_percent = atof(percent_complete);
     printw("%i", (int) round(float_percent));
-    printw("%%");
+    printw("%%\n");
 
-  	refresh();			/* Print it on to the real screen */
+  	refresh(); // Update the screen
 
-    // Clean up and exit.
+    // Clean up.
     free(user);
     free(job);
     free(time_spent);
     free(percent_complete);
     free(name);
-    sleep(10);
+    sleep(refresh); // Wait a bit to do it again.
   }
 	endwin();			/* End curses mode		  */
 
