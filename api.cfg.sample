@@ -2,4 +2,8 @@ url = "<wherever your server is>";
 
 key = "<your key>";
 
-refresh = "<interval>";
+refresh = <interval>;
+
+border = <width>;
+
+scale = <scale>;

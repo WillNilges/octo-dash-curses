@@ -15,6 +15,8 @@ int main(void)
   const char *addr;
   const char *key;
   int refresh;
+  int border;
+  int scale;
 
   config_init(&cfg);
 
@@ -34,6 +36,10 @@ int main(void)
   config_lookup_string(&cfg, "key", &key);
 
   config_lookup_int(&cfg, "refresh", &refresh);
+
+  config_lookup_int(&cfg, "border", &border);
+
+  config_lookup_int(&cfg, "scale", &scale);
 
   // Let's get some basic info about what's printing.
   char *call = "/api/job";
@@ -56,24 +62,24 @@ int main(void)
     char *time_spent = get_value(job, "printTime"); // In seconds
     char *percent_complete = get_value(job, "completion"); // In percent
 
-    move(1, 1);
+    move(1, border);
     attron(A_STANDOUT);
   	printw("Yo, what's cookin!?");
     attroff(A_STANDOUT);
 
-    move(3, 1);
+    move(3, border);
     attron(A_BOLD);
     printw("  Print name: ");
     attroff(A_BOLD);
     printw(name);
 
-    move(4, 1);
+    move(4, border);
     attron(A_BOLD);
     printw("       Owner: ");
     attroff(A_BOLD);
     printw(user);
 
-    move(5, 1);
+    move(5, border);
     clrtoeol();
     attron(A_BOLD);
     printw("Time elapsed: ");
@@ -83,13 +89,25 @@ int main(void)
       printw(total_time_spent);
     } else printw("N/A");
 
-    move(6, 1);
+    move(6, border);
     attron(A_BOLD);
     printw("    Progress: ");
     attroff(A_BOLD);
     float float_percent = atof(percent_complete);
-    printw("%i", (int) round(float_percent));
+    int rounded_percent = (int) round(float_percent);
+    printw("%i", rounded_percent);
     printw("%%\n");
+
+    // Make a progress bar
+    move(7, border);
+    printw("[");
+    for (int i = 0; i < (float_percent/100)*scale; i++) {
+        printw("#");
+    }
+    for (int i = 0; i < scale-((float_percent/100)*scale); i++) {
+        printw(" ");
+    }
+    printw("]");
 
   	refresh(); // Update the screen
 
