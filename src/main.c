@@ -61,6 +61,7 @@ int main(void)
     char *name = get_value(job, "name");
     char *time_spent = get_value(job, "printTime"); // In seconds
     char *percent_complete = get_value(job, "completion"); // In percent
+    char *state = get_value(job, "state");
 
     move(1, border);
     attron(A_STANDOUT);
@@ -84,7 +85,7 @@ int main(void)
     attron(A_BOLD);
     printw("Time elapsed: ");
     attroff(A_BOLD);
-    if (strcmp(time_spent, "null") != 0) {
+    if (strcmp(time_spent, "null") != 0){
       char *total_time_spent=format_time(time_spent);
       printw(total_time_spent);
     } else printw("N/A");
@@ -93,21 +94,32 @@ int main(void)
     attron(A_BOLD);
     printw("    Progress: ");
     attroff(A_BOLD);
-    float float_percent = atof(percent_complete);
-    int rounded_percent = (int) round(float_percent);
-    printw("%i", rounded_percent);
-    printw("%%\n");
+    if (strcmp(percent_complete, "null") != 0){
+        float float_percent = atof(percent_complete);
+        int rounded_percent = (int) round(float_percent);
+        printw("%i", rounded_percent);
+        printw("%%\n");
 
-    // Make a progress bar
-    move(7, border);
-    printw("[");
-    for (int i = 0; i < (float_percent/100)*scale; i++) {
-        printw("#");
-    }
-    for (int i = 0; i < scale-((float_percent/100)*scale); i++) {
-        printw(" ");
-    }
-    printw("]");
+        // Make a progress bar
+        move(7, border);
+        printw("[");
+        for (int i = 0; i < (float_percent/100)*scale; i++) {
+            printw("#");
+        }
+        for (int i = 0; i < scale-((float_percent/100)*scale); i++) {
+            printw(" ");
+        }
+        printw("]");
+
+        move(8, border);
+        if (strcmp(state, "Printing") == 0)
+            printw("Printing...");
+        else if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
+            printw("Done!");
+        else
+            printw(state);
+    } else printw("N/A");
+
 
   	refresh(); // Update the screen
 
@@ -117,6 +129,7 @@ int main(void)
     free(time_spent);
     free(percent_complete);
     free(name);
+    free(state);
     sleep(refresh); // Wait a bit to do it again.
   }
 	endwin();			/* End curses mode		  */
