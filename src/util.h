@@ -15,6 +15,8 @@ void init_string(struct string *s);
 
 size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s);
 
+char *format_time(char *time_in_seconds);
+
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 
 char *get_value(char *json_blob, char *seek);

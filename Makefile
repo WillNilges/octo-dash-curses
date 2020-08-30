@@ -1,7 +1,7 @@
 cc=gcc
 
 octodashcurses: build/main.o build/util.o build/jsmn.o
-	gcc -o $@ -lcurl $^ -I.
+	gcc -o $@ -lcurl -lncurses $^ -I.
 
 build/%.o: src/%.c
 	@mkdir -p $(@D)
