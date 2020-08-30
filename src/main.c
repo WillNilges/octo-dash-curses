@@ -14,6 +14,7 @@ int main(void)
   config_setting_t *setting;
   const char *addr;
   const char *key;
+  const char *dashboard_message;
   int refresh;
   int border;
   int scale;
@@ -29,16 +30,11 @@ int main(void)
     return(EXIT_FAILURE);
   }
 
-  // Get url
   config_lookup_string(&cfg, "url", &addr);
-
-  // Get key
   config_lookup_string(&cfg, "key", &key);
-
+  config_lookup_string(&cfg, "dashboard_message", &dashboard_message);
   config_lookup_int(&cfg, "refresh", &refresh);
-
   config_lookup_int(&cfg, "border", &border);
-
   config_lookup_int(&cfg, "scale", &scale);
 
   // Let's get some basic info about what's printing.
@@ -65,7 +61,7 @@ int main(void)
 
     move(1, border);
     attron(A_STANDOUT);
-  	printw("Yo, what's cookin!?");
+  	printw(dashboard_message);
     attroff(A_STANDOUT);
 
     move(3, border);
@@ -111,6 +107,7 @@ int main(void)
         }
         printw("]");
 
+        // Print printer state
         move(8, border);
         if (strcmp(state, "Printing") == 0)
             printw("Printing...");

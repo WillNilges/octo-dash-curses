@@ -2,6 +2,8 @@ url = "<wherever your server is>";
 
 key = "<your key>";
 
+dashboard_message = "Yo, what's cookin!?";
+
 refresh = <interval>;
 
 border = <width>;
