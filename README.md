@@ -4,6 +4,15 @@ A simple, rugged dashboard for your print server.
 
 octo-dash-curses (odc) is an app written in C that provides a dead-simple way to check on your 3D prints via an OctoPrint server through your terminal. You can install it on your OctoPrint server and hook up a display to monitor your print progress without the need for a display server, or install it on your computer for a quicker way to check your print progress.
 
+### How it works
+
+ODC queries your OctoPrint server for printer status and displays the most relevant information about your print. It runs in a loop until you hit `^C`.
+
+### Supported Printers
+
+- Ender 3 Pro
+- _probably others but the Ender 3 Pro is the only one I have_
+
 ## Installation
 
 ### Dependencies
