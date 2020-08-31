@@ -24,6 +24,13 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - ncurses-devel
 - libconfig-devel
 
+#### Raspbian
+
+- gcc
+- libconfig-dev
+- libncurses-dev
+- libcurl4-gnutils-dev
+
 ### Building
 
 - Clone the repo, run `make`, and put `odc` somewhere on your `$PATH` along with an `api.cfg` file.
