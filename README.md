@@ -8,6 +8,9 @@ octo-dash-curses (odc) is an app written in C that provides a dead-simple way to
 
 ODC queries your OctoPrint server for printer status and displays the most relevant information about your print. It runs in a loop until you hit `^C`.
 
+![image](https://user-images.githubusercontent.com/42927786/91780262-026cf080-ebc5-11ea-962f-c456396d84f3.png)
+
+
 ### Supported Printers
 
 - Ender 3 Pro
@@ -37,16 +40,19 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - Run it, and you'll be presented with a dashboard that looks something like this:
 
 ```
-  Yo, what's cookin!?
-
-    Print name: frontal_0.12mm_PLA_ENDER3_5h6m.gcode
-         Owner: wilnil
-  Time elapsed: 3 hr, 47 min, 21 sec
-      Progress: 72%
-  [#####################################              ]
-
+  Yo, what's cookin!?                                                      
+                                                                           
+    Print name: Phone_stand_flippable_stand_0.12mm_PLA_ENDER3_3h19m.gcode  
+         Owner: wilnil                                                     
+                                                                           
+    Print head: 27.27/0.0 °C                                               
+           Bed: 27.27/0.0 °C                                               
+                                                                           
+  Time elapsed: 3 hr, 38 min, 30 sec                                       
+      Progress: 100%                                                       
+  [▒▒▒▒▒▒▒▒▒▒▒.▒▒▒▒▒▒▒▒▒▒▒▒.▒▒▒▒▒▒▒▒▒▒▒.▒▒▒▒▒▒▒▒▒▒▒▒]                      
+  Done!                                                                                                                                 
 ```
-
 
 ## Configuration
 
