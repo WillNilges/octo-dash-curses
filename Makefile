@@ -13,4 +13,5 @@ clean:
 	rm odc
 
 run:
+	make
 	./odc

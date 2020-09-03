@@ -29,25 +29,18 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
   return size*nmemb;
 }
 
-char *format_time(char *time_seconds) {
+struct Duration format_time(char *time_seconds) {
   int int_time_seconds = atoi(time_seconds);
 
-  char *parsed_time;
+  struct Duration parsed_time;
 
   int seconds = int_time_seconds % 60;
   int minutes = (int_time_seconds / 60) % 60;
   int hours = int_time_seconds / 3600;
 
-  // I am a lazy bitch
-  parsed_time = (char *) malloc(100);
-  snprintf(
-    parsed_time,
-    100,
-    "%d hr, %d min, %d sec",
-    hours,
-    minutes,
-    seconds
-  );
+  parsed_time.hr = hours;
+  parsed_time.min = minutes;
+  parsed_time.sec = seconds;
   return parsed_time;
 }
 

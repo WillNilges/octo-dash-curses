@@ -53,6 +53,14 @@ int main(void)
     strcpy(printer_address, ADDR);
     strcat(printer_address, printer_call);
 
+
+    char *printer = call_octoprint(printer_address, KEY);
+    if (strcmp(printer, "-1") == 0) {
+        endwin();
+        printf("Error: Can't contact the OctoPrint server.");
+        return 1;
+    }
+
     initscr(); // Start ncurses.
     start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK);
@@ -125,10 +133,12 @@ int main(void)
         printw(PRINT_HEAD);
         attroff(A_BOLD);
         printw(print_head_actual_temp);
-        move(6, border + strlen(PRINT_HEAD) + strlen(print_head_actual_temp) - 1);
+        int spacing = border + strlen(PRINT_HEAD) + strlen(print_head_actual_temp) - 1;
+        move(6, spacing);
         printw("/");
         printw(print_head_target_temp);
-        move(6, border + strlen(PRINT_HEAD) + strlen(print_head_target_temp) + strlen(print_head_actual_temp) - 1);
+        spacing += strlen(print_head_target_temp);
+        move(6, spacing);
         printw(" °C");
 
         // Info about the print head
@@ -137,11 +147,13 @@ int main(void)
         attron(A_BOLD);
         printw(BED);
         attroff(A_BOLD);
-        printw(print_head_actual_temp);
-        move(7, border + strlen(BED) + strlen(bed_actual_temp) - 1);
+        printw(bed_actual_temp);
+        spacing = border + strlen(BED) + strlen(bed_actual_temp) - 1;
+        move(7, spacing);
         printw("/");
-        printw(print_head_target_temp);
-        move(7, border + strlen(BED) + strlen(bed_target_temp) + strlen(bed_actual_temp) - 1);
+        printw(bed_target_temp);
+        spacing += strlen(bed_target_temp);
+        move(7, spacing);
         printw(" °C");
 
         // Time spent printing
@@ -151,9 +163,13 @@ int main(void)
         printw("Time elapsed: ");
         attroff(A_BOLD);
         if (strcmp(time_spent, "null") != 0){
-            char *parsed_time_spent=format_time(time_spent);
-            printw(parsed_time_spent);
-            free(parsed_time_spent);
+            struct Duration parsed_time_spent = format_time(time_spent);
+            printw(
+                "%d hr %d min %d sec",
+                parsed_time_spent.hr,
+                parsed_time_spent.min,
+                parsed_time_spent.sec
+            );
         } else printw("N/A");
 
         // How far along we are.
