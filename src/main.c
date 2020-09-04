@@ -165,7 +165,7 @@ int main(void)
         if (strcmp(time_spent, "null") != 0){
             struct Duration parsed_time_spent = format_time(time_spent);
             printw(
-                "%d hr, %d min, %d sec",
+                "%d hr  |  %d min  |  %d sec",
                 parsed_time_spent.hr,
                 parsed_time_spent.min,
                 parsed_time_spent.sec
@@ -217,6 +217,7 @@ int main(void)
 
             // Print printer state (TODO: Parse this better :/)
             move(12, border);
+            clrtoeol();
             if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
             printw("Done!");
             else
