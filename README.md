@@ -32,7 +32,7 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - gcc
 - libconfig-dev
 - libncurses-dev
-- libcurl4-gnutils-dev
+- libcurl4-gnutls-dev
 
 ### Building
 
