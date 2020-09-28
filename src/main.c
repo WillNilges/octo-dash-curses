@@ -53,11 +53,11 @@ int main(void)
     strcpy(printer_address, ADDR);
     strcat(printer_address, printer_call);
 
-
+    // Check if the octoprint server is alive.
+    // If it's not then don't let the user open odc.
     char *printer = call_octoprint(printer_address, KEY);
-    if (strcmp(printer, "-1") == 0) {
-        endwin();
-        printf("Error: Can't contact the OctoPrint server.");
+    if (check_alive(printer) == 1) {
+        printf("Error: Can't contact the OctoPrint server.\0");
         return 1;
     }
 
@@ -72,11 +72,10 @@ int main(void)
     init_pair(7, COLOR_BLACK, COLOR_GREEN);
     init_pair(8, COLOR_BLACK, COLOR_BLUE);
     for(;;) {
+        test += 1;
         char *job = call_octoprint(job_address, KEY);
-        if (strcmp(job, "-1") == 0) {
-            endwin();
-            printf("Error: Can't contact the OctoPrint server.");
-            return 1;
+        if (check_alive(job) == 1) {
+            open_error_win();
         }
         char *user = get_value(job, "user");
         char *name = get_value(job, "name");
@@ -85,10 +84,8 @@ int main(void)
         char *state = get_value(job, "state");
 
         char *printer = call_octoprint(printer_address, KEY);
-        if (strcmp(printer, "-1") == 0) {
-            endwin();
-            printf("Error: Can't contact the OctoPrint server.");
-            return 1;
+        if (check_alive(printer) == 1) {
+            open_error_win();
         }
 
         //TODO: Might want to make this customizable, since there can be
@@ -185,6 +182,7 @@ int main(void)
 
             // Make a progress bar
             move(11, border);
+            clrtoeol();
             printw("[");
             int prog_zone;
             for (int i = 0; i < (float_percent/100)*scale; i++) {
@@ -235,6 +233,6 @@ int main(void)
         free(state);
         sleep(refresh); // Wait a bit to do it again.
     }
-    endwin();			/* End curses mode		  */
+    endwin(); // End curses mode
     return 0;
 }

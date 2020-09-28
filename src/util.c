@@ -1,6 +1,12 @@
 #include <curl/curl.h>
 #include <stdlib.h>
+#include <ncurses.h>
 #include "util.h"
+#include <unistd.h>
+
+/* WHAT CAN POSSIBLY GO WRONG? */
+const char *ERROR = "Can't contact the OctoPrint server.";
+const char *MALFORMED = "Error: Malformed API key.";
 
 /* STRING STUFF */
 
@@ -55,7 +61,7 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 }
 
 // Parse through a JSON blob recursively to acquire a specific key.
-char *get_value(char *json_blob, char *seek){
+char *get_value(char *json_blob, char *seek) {
   // Set up all the shit we need
   int r;
   jsmn_parser p;
@@ -92,8 +98,9 @@ char *get_value(char *json_blob, char *seek){
 
 /* OCTOPRINT STUFF */
 
-// Query the octoprint server for data.
-char *call_octoprint(char *api_call, const char *key){
+// Query the octoprint server for data. This is a stupid CURL request, and does not check
+// if it was actually successful.
+char *call_octoprint(char *api_call, const char *key) {
   CURL *curl;
   CURLcode res;
 
@@ -105,6 +112,12 @@ char *call_octoprint(char *api_call, const char *key){
     init_string(&s);
 
     curl_easy_setopt(curl, CURLOPT_URL, api_call);
+    if (strlen(key) != 32) { // I believe all OctoPrint API keys are exactly 32 bytes long. 
+      printf("%s\n", MALFORMED); // I'm lazy, so this is how I'm gonna report errors.
+      curl_slist_free_all(list);
+      curl_easy_cleanup(curl);
+      return (char *) MALFORMED;
+    }
     char keybase[32+11] = "X-Api-Key: "; // Memory really do be like that.
     strcat(keybase, key);
     list = curl_slist_append(list, keybase);
@@ -113,7 +126,10 @@ char *call_octoprint(char *api_call, const char *key){
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
     res = curl_easy_perform(curl);
     if (res != 0) {
-        return "-1";
+      printf("API call returned nonzero value.");
+      curl_slist_free_all(list);
+      curl_easy_cleanup(curl);
+      return (char *) ERROR;
     }
     /* always cleanup */
     curl_slist_free_all(list);
@@ -121,4 +137,91 @@ char *call_octoprint(char *api_call, const char *key){
     return s.ptr;
   }
   return 0;
+}
+
+// Checks contents of API reply for every possible issue.
+// Returns 0 if OK and 1 if not OK.
+// TODO: Add more issues as they arise :P
+int check_alive(char *reply) {
+  // Forgive me father for I have sinned
+  if (
+    strstr(reply, "OctoPrint is currently not running")  ||
+    strstr(reply, "Can't contact the OctoPrint server.") ||
+    strstr(reply, "Error: Malformed API key.")           ||
+    strstr(reply, "403 Forbidden")                       ||
+    strstr(reply, "Offline")
+  ) return 1;
+  return 0;
+}
+
+// Some dumb ncurses shit
+
+WINDOW *create_newwin(int height, int width, int starty, int startx)
+{	WINDOW *local_win;
+
+	local_win = newwin(height, width, starty, startx);
+	box(local_win, 0 , 0);		/* 0, 0 gives default characters 
+					 * for the vertical and horizontal
+					 * lines			*/
+	wrefresh(local_win);		/* Show that box 		*/
+
+	return local_win;
+}
+
+void destroy_win(WINDOW *local_win)
+{	
+	/* box(local_win, ' ', ' '); : This won't produce the desired
+	 * result of erasing the window. It will leave it's four corners 
+	 * and so an ugly remnant of window. 
+	 *
+   * The parameters taken are 
+   * 1. win: the window on which to operate
+   * 2. ls: character to be used for the left side of the window 
+   * 3. rs: character to be used for the right side of the window 
+   * 4. ts: character to be used for the top side of the window 
+   * 5. bs: character to be used for the bottom side of the window 
+   * 6. tl: character to be used for the top left corner of the window 
+   * 7. tr: character to be used for the top right corner of the window 
+   * 8. bl: character to be used for the bottom left corner of the window 
+   * 9. br: character to be used for the bottom right corner of the window
+   */
+	wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	wrefresh(local_win);
+	delwin(local_win);
+}
+
+void open_error_win() {
+  WINDOW *error_win;
+  char *retry = "Retrying in %d seconds.";
+  int startx, starty, width, height;
+  int ch;
+  height = 6;
+  width = 40;
+  starty = (LINES - height) / 2;	/* Calculating for a center placement */
+  startx = (COLS - width) / 2;	/* of the window		*/
+  refresh();
+  error_win = create_newwin(height, width, starty, startx);
+
+  // Just gonna leave this mess here because
+  // I can't decide on a theme.
+
+  wattron(error_win, A_BOLD);
+  // wattron(error_win, A_STANDOUT);
+  wattron(error_win, COLOR_PAIR(1));
+  mvwprintw(error_win, 0, 1, "Error:");
+  // wattroff(error_win, A_STANDOUT);
+  // wattron(error_win, A_BOLD);
+  mvwprintw(error_win, 2, (width-strlen(ERROR))/2, ERROR);
+  wattroff(error_win, A_BOLD);
+  wattroff(error_win, COLOR_PAIR(1));
+
+  // Blocking loop to wait about 10 seconds to try contacting
+  // OctoPrint again. We'll have to see how well this performs.
+  for (int i = 0; i < 10; i++) {
+    mvwprintw(error_win, 3, (width-strlen(retry))/2, retry, 10-i);
+    wrefresh(error_win);
+    refresh();
+    sleep(1);
+  }
+  destroy_win(error_win);
 }
