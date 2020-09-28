@@ -4,6 +4,8 @@ key = "<your key>";
 
 dashboard_message = "Yo, what's cookin!?";
 
+no_print_message = "Nothin' is cookin' :(";
+
 refresh = <interval>;
 
 border = <width>;
