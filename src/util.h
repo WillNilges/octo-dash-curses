@@ -29,4 +29,12 @@ char *get_value(char *json_blob, char *seek);
 
 char *call_octoprint(char *api_call, const char *key);
 
+int check_alive(char *reply);
+
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+
+void destroy_win(WINDOW *local_win);
+
+void open_error_win();
+
 #endif
