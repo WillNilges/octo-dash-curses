@@ -15,6 +15,7 @@ int main(void)
     const char *ADDR;
     const char *KEY;
     const char *DASHBOARD_MESSAGE;
+    const char *NO_PRINT_MESSSAGE;
     int refresh;
     int border;
     int scale;
@@ -33,6 +34,7 @@ int main(void)
     config_lookup_string(&cfg, "url", &ADDR);
     config_lookup_string(&cfg, "key", &KEY);
     config_lookup_string(&cfg, "dashboard_message", &DASHBOARD_MESSAGE);
+    config_lookup_string(&cfg, "no_print_message", &NO_PRINT_MESSSAGE);
     config_lookup_int(&cfg, "refresh", &refresh);
     config_lookup_int(&cfg, "border", &border);
     config_lookup_int(&cfg, "scale", &scale);
@@ -72,7 +74,6 @@ int main(void)
     init_pair(7, COLOR_BLACK, COLOR_GREEN);
     init_pair(8, COLOR_BLACK, COLOR_BLUE);
     for(;;) {
-        test += 1;
         char *job = call_octoprint(job_address, KEY);
         if (check_alive(job) == 1) {
             open_error_win();
@@ -102,7 +103,10 @@ int main(void)
 
         move(1, border);
         attron(A_STANDOUT);
-        printw(DASHBOARD_MESSAGE);
+        if (!strcmp(name, "null"))
+            printw(DASHBOARD_MESSAGE);
+        else 
+            printw(NO_PRINT_MESSSAGE);
         attroff(A_STANDOUT);
 
         // All the titles
@@ -111,17 +115,25 @@ int main(void)
         const char *PRINT_HEAD = "  Print head: ";
         const char *BED        = "         Bed: ";
 
+        // Show the print name
         move(3, border);
         attron(A_BOLD);
         printw(PRINT_NAME);
         attroff(A_BOLD);
-        printw(name);
+        if (!strcmp(name, "null"))
+            printw(name);
+        else
+            printw("N/A");
 
+        // Show who owns it.
         move(4, border);
         attron(A_BOLD);
         printw(OWNER);
         attroff(A_BOLD);
-        printw(user);
+        if (!strcmp(user, "null"))
+            printw(user);
+        else
+            printw("N/A");
 
         // Info about the print head
         move(6, border);
@@ -138,7 +150,7 @@ int main(void)
         move(6, spacing);
         printw(" °C");
 
-        // Info about the print head
+        // Info about the bed
         move(7, border);
         clrtoeol();
         attron(A_BOLD);
