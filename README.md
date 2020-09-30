@@ -60,9 +60,9 @@ You can configure stuff through `api.cfg`
 
 - `url`: The URL to your OctoPrint server
 - `key`: The API key to allow `odc` to get access to your server
-- `refresh`: The refresh rate of `odc`'s data, in seconds. (On _my_ LAN, I can put this down to 1 second and it works fine, but you might want to slow it down if your print server is slow or your connection is slow.
-- 'border': The distance from the left OCD prints stuff.
-- 'scale': The length of the progress bar.
+- `refresh`: The refresh rate of `odc`'s data, in seconds. (On _my_ LAN, I can put this down to 1 second and it works fine, but you might want to slow it down if your print server is slow or your connection is slow)
+- `border`: The distance from the left OCD prints stuff.
+- `scale`: The length of the progress bar.
 
 ## Development
 
