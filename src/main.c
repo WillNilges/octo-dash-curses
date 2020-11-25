@@ -103,7 +103,7 @@ int main(void)
 
         move(1, border);
         attron(A_STANDOUT);
-        if (!strcmp(name, "null"))
+        if (strcmp(state, "Printing\n") == 0)
             printw(DASHBOARD_MESSAGE);
         else 
             printw(NO_PRINT_MESSSAGE);
@@ -120,7 +120,7 @@ int main(void)
         attron(A_BOLD);
         printw(PRINT_NAME);
         attroff(A_BOLD);
-        if (!strcmp(name, "null"))
+        if (strcmp(name, "null") != 0)
             printw(name);
         else
             printw("N/A");
@@ -130,7 +130,7 @@ int main(void)
         attron(A_BOLD);
         printw(OWNER);
         attroff(A_BOLD);
-        if (!strcmp(user, "null"))
+        if (strcmp(user, "null") != 0)
             printw(user);
         else
             printw("N/A");
