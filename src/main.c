@@ -198,30 +198,31 @@ int main(void)
             printw("[");
             int prog_zone;
             for (int i = 0; i < (float_percent/100)*scale; i++) {
-                if (float_percent >= 00) prog_zone = 1;
-                if (float_percent >= 25) prog_zone = 2;
-                if (float_percent >= 50) prog_zone = 3;
-                if (float_percent >= 75) prog_zone = 4;
+                if (float_percent >= 00) prog_zone = 5;
+                if (float_percent >= 25) prog_zone = 6;
+                if (float_percent >= 50) prog_zone = 7;
+                if (float_percent >= 75) prog_zone = 8;
                 attron(COLOR_PAIR(prog_zone));
-                addch(ACS_CKBOARD);
+                addch(' ');
                 attroff(COLOR_PAIR(prog_zone));
             }
             for (int i = 0; i < scale-((float_percent/100)*scale); i++) {
                 printw(" ");
             }
-            if (float_percent >= 25) attron(COLOR_PAIR(4+prog_zone));
+            // if (float_percent >= 25) attron(COLOR_PAIR(prog_zone-4));
+            char quarter_tick = '|';
             move(11, border+(scale/4));
-            addch('.');
-            attroff(COLOR_PAIR(4+prog_zone));
+            addch(quarter_tick);
+            // attroff(COLOR_PAIR(prog_zone-4));
 
-            if (float_percent >= 50) attron(COLOR_PAIR(4+prog_zone));
+            // if (float_percent >= 50) attron(COLOR_PAIR(prog_zone-4));
             move(11, border+(scale/2));
-            addch('.');
-            attroff(COLOR_PAIR(4+prog_zone));
-            if (float_percent >= 75) attron(COLOR_PAIR(4+prog_zone));
+            addch(quarter_tick);
+            // attroff(COLOR_PAIR(prog_zone-4));
+            // if (float_percent >= 75) attron(COLOR_PAIR(prog_zone-4));
             move(11, border+(scale*3/4));
-            addch('.');
-            attroff(COLOR_PAIR(4+prog_zone));
+            addch(quarter_tick);
+            // attroff(COLOR_PAIR(prog_zone-4));
             move(11, border+scale);
             printw("]");
 
