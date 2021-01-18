@@ -8,21 +8,22 @@
 
 int main(void)
 {
-    // Set up variables for making API calls
-    // Grab some configs
+    // Set up config variables, API variables
     config_t cfg;
     config_setting_t *setting;
     const char *ADDR;
     const char *KEY;
     const char *DASHBOARD_MESSAGE;
     const char *NO_PRINT_MESSSAGE;
+
     int refresh;
     int border;
     int scale;
 
+    // Grab some configs
     config_init(&cfg);
 
-    /* Read the file. If there is an error, report it and exit. */
+    // Read the config file. If there is an error, report it and exit.
     if(! config_read_file(&cfg, "api.cfg"))
     {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
@@ -31,6 +32,7 @@ int main(void)
         return(EXIT_FAILURE);
     }
 
+    // Dump those configs!
     config_lookup_string(&cfg, "url", &ADDR);
     config_lookup_string(&cfg, "key", &KEY);
     config_lookup_string(&cfg, "dashboard_message", &DASHBOARD_MESSAGE);
@@ -47,7 +49,7 @@ int main(void)
     strcpy(job_address, ADDR);
     strcat(job_address, job_call);
 
-    // Let's get some basic info about what's printing.
+    //Specify the API path to use
     char *printer_call = "/api/printer";
 
     // Construct the curl URL
@@ -81,33 +83,42 @@ int main(void)
     getmaxyx(stdscr, max_row, max_col);
     
     for(;;) {
+
+        /* === DATA COLLECTION === */
+
+        // Get some basic info about what's printing
         char *job = call_octoprint(job_address, KEY);
-        if (check_alive(job) == 1) {
+
+        // Make sure that we don't have some kind of error message
+        if (check_alive(job) == 1)
             open_error_win();
-        }
+        
+        // Get basic data we want to display
         char *user = get_value(job, "user");
         char *name = get_value(job, "name");
         char *time_spent = get_value(job, "printTime"); // In seconds
         char *percent_complete = get_value(job, "completion"); // In percent
         char *state = get_value(job, "state");
 
+        // Get some basic info about the print head and print bed
         char *printer = call_octoprint(printer_address, KEY);
-        if (check_alive(printer) == 1) {
+        if (check_alive(printer) == 1)
             open_error_win();
-        }
 
-        //TODO: Might want to make this customizable, since there can be
+        // TODO: Might want to make this (tool0) customizable, since there can be
         // multiple tools.
+
+        // Get print head temps
         char *print_head = get_value(printer, "tool0");
-        // So, the API call looks weird. This might be hard.
         char *print_head_actual_temp = get_value(print_head, "actual");
         char *print_head_target_temp = get_value(print_head, "target");
 
+        // Get print bed temps
         char *bed = get_value(printer, "bed");
-        // So, the API call looks weird. This might be hard.
         char *bed_actual_temp = get_value(bed, "actual");
         char *bed_target_temp = get_value(bed, "target");
 
+        // Print dashboard title
         move(1, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
         attron(A_STANDOUT);
         if (strcmp(state, "Printing\n") == 0)
@@ -116,13 +127,13 @@ int main(void)
             printw(NO_PRINT_MESSSAGE);
         attroff(A_STANDOUT);
 
-        // All the titles
+        // Set up the titles of the data we just acquired
         const char *PRINT_NAME = "  Print name: ";
         const char *OWNER      = "       Owner: ";
         const char *PRINT_HEAD = "  Print head: ";
         const char *BED        = "         Bed: ";
 
-        // Show the print name
+        // Show the file name of the current print
         move(3, border);
         attron(A_BOLD);
         printw(PRINT_NAME);
@@ -132,7 +143,7 @@ int main(void)
         else
             printw("N/A");
 
-        // Show who owns it.
+        // Show the username of whoever started the print
         move(4, border);
         attron(A_BOLD);
         printw(OWNER);
@@ -142,7 +153,7 @@ int main(void)
         else
             printw("N/A");
 
-        // Info about the print head
+        // Display print head temps
         move(6, border);
         clrtoeol();
         attron(A_BOLD);
@@ -157,7 +168,7 @@ int main(void)
         move(6, spacing);
         printw(" °C");
 
-        // Info about the bed
+        // Display bed temps
         move(7, border);
         clrtoeol();
         attron(A_BOLD);
@@ -172,38 +183,39 @@ int main(void)
         move(7, spacing);
         printw(" °C");
 
-        // Time spent printing
-        move(9, border);
-        clrtoeol();
-        attron(A_BOLD);
-        printw("Time elapsed: ");
-        attroff(A_BOLD);
-        if (strcmp(time_spent, "null") != 0){
-            struct Duration parsed_time_spent = format_time(time_spent);
-            printw(
-                "%d hr  |  %d min  |  %d sec",
-                parsed_time_spent.hr,
-                parsed_time_spent.min,
-                parsed_time_spent.sec
-            );
-        } else printw("N/A");
-
-        // How far along we are.
-        move(13, (max_col/2) - 13/2);
-        attron(A_BOLD);
-        printw("Progress: ");
-        attroff(A_BOLD);
         if (strcmp(percent_complete, "null") != 0){
-            float float_percent = atof(percent_complete);
-            int rounded_percent = (int) round(float_percent);
-            printw("%i", rounded_percent);
-            printw("%%\n");
-
-            // Draw a progress bar
             int progress_bar_start = (max_col/2)-(scale/2);
             int prog_bar_y = 12;
             int prog_zone;
 
+            // Print printer state
+            move(prog_bar_y-1, progress_bar_start+1);
+            clrtoeol();
+            if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
+            printw("Done!");
+            else
+            printw(state);
+
+            // Display time elapsed printing
+            move(11, (max_col/2)+(scale/2) - 7);
+            if (strcmp(time_spent, "null") != 0){
+                struct Duration parsed_time_spent = format_time(time_spent);
+                printw(
+                    "%02d:%02d:%02d",
+                    parsed_time_spent.hr,
+                    parsed_time_spent.min,
+                    parsed_time_spent.sec
+                );
+            } else printw("N/A");
+
+            // Display percent complete
+            move(13, (max_col/2)+(scale/2) - 3);
+            float float_percent = atof(percent_complete);
+            int rounded_percent = (int) round(float_percent);
+            printw("%03d", rounded_percent);
+            printw("%%\n");
+
+            // Draw a progress bar
             move(12, progress_bar_start);
             clrtoeol();
             printw("[");
@@ -231,16 +243,8 @@ int main(void)
             move(prog_bar_y, progress_bar_start + border + (scale*3/4));
             addch(quarter_tick);
 
-            move(prog_bar_y, progress_bar_start + border + scale);
+            move(prog_bar_y, progress_bar_start + border + scale - 1);
             printw("]");
-
-            // Print printer state (TODO: Parse this better :/)
-            move(11, max_col/2 - strlen(state)/2);
-            clrtoeol();
-            if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
-            printw("Done!");
-            else
-            printw(state);
         } else printw("N/A");
 
         refresh(); // Update the screen
