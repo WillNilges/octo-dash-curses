@@ -8,7 +8,7 @@ octo-dash-curses (odc) is an app written in C that provides a dead-simple way to
 
 ODC queries your OctoPrint server for printer status and displays the most relevant information about your print. It runs in a loop until you hit `^C`.
 
-![image](https://user-images.githubusercontent.com/42927786/91780262-026cf080-ebc5-11ea-962f-c456396d84f3.png)
+![image](https://user-images.githubusercontent.com/42927786/104860210-42284080-58f8-11eb-8503-71b76256df8b.png)
 
 
 ### Supported Printers
