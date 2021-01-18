@@ -64,6 +64,8 @@ int main(void)
     }
 
     initscr(); // Start ncurses.
+
+    // Set up color
     start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK);
     init_pair(2, COLOR_YELLOW, COLOR_BLACK);
@@ -73,6 +75,11 @@ int main(void)
     init_pair(6, COLOR_BLACK, COLOR_YELLOW);
     init_pair(7, COLOR_BLACK, COLOR_GREEN);
     init_pair(8, COLOR_BLACK, COLOR_BLUE);
+
+    // Get bounds of display
+    int max_row,max_col;
+    getmaxyx(stdscr, max_row, max_col);
+    
     for(;;) {
         char *job = call_octoprint(job_address, KEY);
         if (check_alive(job) == 1) {
@@ -101,7 +108,7 @@ int main(void)
         char *bed_actual_temp = get_value(bed, "actual");
         char *bed_target_temp = get_value(bed, "target");
 
-        move(1, border);
+        move(1, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
         attron(A_STANDOUT);
         if (strcmp(state, "Printing\n") == 0)
             printw(DASHBOARD_MESSAGE);
@@ -182,9 +189,9 @@ int main(void)
         } else printw("N/A");
 
         // How far along we are.
-        move(10, border);
+        move(13, (max_col/2) - 13/2);
         attron(A_BOLD);
-        printw("    Progress: ");
+        printw("Progress: ");
         attroff(A_BOLD);
         if (strcmp(percent_complete, "null") != 0){
             float float_percent = atof(percent_complete);
@@ -192,11 +199,14 @@ int main(void)
             printw("%i", rounded_percent);
             printw("%%\n");
 
-            // Make a progress bar
-            move(11, border);
+            // Draw a progress bar
+            int progress_bar_start = (max_col/2)-(scale/2);
+            int prog_bar_y = 12;
+            int prog_zone;
+
+            move(12, progress_bar_start);
             clrtoeol();
             printw("[");
-            int prog_zone;
             for (int i = 0; i < (float_percent/100)*scale; i++) {
                 if (float_percent >= 00) prog_zone = 5;
                 if (float_percent >= 25) prog_zone = 6;
@@ -206,28 +216,26 @@ int main(void)
                 addch(' ');
                 attroff(COLOR_PAIR(prog_zone));
             }
-            for (int i = 0; i < scale-((float_percent/100)*scale); i++) {
+            
+            for (int i = 0; i < scale-((float_percent/100)*scale); i++)
                 printw(" ");
-            }
-            // if (float_percent >= 25) attron(COLOR_PAIR(prog_zone-4));
-            char quarter_tick = '|';
-            move(11, border+(scale/4));
-            addch(quarter_tick);
-            // attroff(COLOR_PAIR(prog_zone-4));
 
-            // if (float_percent >= 50) attron(COLOR_PAIR(prog_zone-4));
-            move(11, border+(scale/2));
+            char quarter_tick = '|';
+
+            move(prog_bar_y, progress_bar_start + border + (scale/4));
             addch(quarter_tick);
-            // attroff(COLOR_PAIR(prog_zone-4));
-            // if (float_percent >= 75) attron(COLOR_PAIR(prog_zone-4));
-            move(11, border+(scale*3/4));
+
+            move(prog_bar_y, progress_bar_start + border + (scale/2));
             addch(quarter_tick);
-            // attroff(COLOR_PAIR(prog_zone-4));
-            move(11, border+scale);
+
+            move(prog_bar_y, progress_bar_start + border + (scale*3/4));
+            addch(quarter_tick);
+
+            move(prog_bar_y, progress_bar_start + border + scale);
             printw("]");
 
             // Print printer state (TODO: Parse this better :/)
-            move(12, border);
+            move(11, max_col/2 - strlen(state)/2);
             clrtoeol();
             if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
             printw("Done!");
