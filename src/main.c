@@ -60,7 +60,8 @@ int main(void)
     // Check if the octoprint server is alive.
     // If it's not then don't let the user open odc.
     char *printer = call_octoprint(printer_address, KEY);
-    if (check_alive(printer) == 1) {
+    if (check_alive(printer) == 1)
+    {
         printf("Error: Can't contact the OctoPrint server.\0");
         return 1;
     }
@@ -82,8 +83,8 @@ int main(void)
     int max_row,max_col;
     getmaxyx(stdscr, max_row, max_col);
     
-    for(;;) {
-
+    for(;;)
+    {
         /* === DATA COLLECTION === */
 
         // Get some basic info about what's printing
@@ -183,21 +184,23 @@ int main(void)
         move(7, spacing);
         printw(" °C");
 
-        if (strcmp(percent_complete, "null") != 0){
-            int progress_bar_start = (max_col/2)-(scale/2);
-            int prog_bar_y = 12;
-            int prog_zone;
 
+        // Display the progress bar and progress bar accessories
+        int progress_bar_start = (max_col / 2) - (scale / 2);
+        int progress_bar_y = 12;
+        int prog_zone;
+        if (strcmp(percent_complete, "null") != 0)
+        {
             // Print printer state
-            move(prog_bar_y-1, progress_bar_start+1);
+            move(progress_bar_y - 1, progress_bar_start + 1);
             clrtoeol();
-            if (/*strcmp(state, "Operational") == 0 &&*/ atoi(percent_complete) >= 100)
-            printw("Done!");
+            if (atoi(percent_complete) >= 100)
+                printw("Done!");
             else
-            printw(state);
+                printw(state);
 
             // Display time elapsed printing
-            move(11, (max_col/2)+(scale/2) - 7);
+            move(11, (max_col / 2) + (scale / 2) - 7);
             if (strcmp(time_spent, "null") != 0){
                 struct Duration parsed_time_spent = format_time(time_spent);
                 printw(
@@ -209,17 +212,18 @@ int main(void)
             } else printw("N/A");
 
             // Display percent complete
-            move(13, (max_col/2)+(scale/2) - 3);
+            move(progress_bar_y + 1, (max_col / 2) + (scale / 2) - 3);
             float float_percent = atof(percent_complete);
             int rounded_percent = (int) round(float_percent);
             printw("%03d", rounded_percent);
             printw("%%\n");
 
             // Draw a progress bar
-            move(12, progress_bar_start);
+            move(progress_bar_y, progress_bar_start);
             clrtoeol();
             printw("[");
-            for (int i = 0; i < (float_percent/100)*scale; i++) {
+            for (int i = 0; i < (float_percent / 100) * scale; i++)
+            {
                 if (float_percent >= 00) prog_zone = 5;
                 if (float_percent >= 25) prog_zone = 6;
                 if (float_percent >= 50) prog_zone = 7;
@@ -229,23 +233,32 @@ int main(void)
                 attroff(COLOR_PAIR(prog_zone));
             }
             
-            for (int i = 0; i < scale-((float_percent/100)*scale); i++)
+            for (int i = 0; i < scale - ((float_percent / 100) * scale); i++)
                 printw(" ");
 
             char quarter_tick = '|';
 
-            move(prog_bar_y, progress_bar_start + border + (scale/4));
+            move(progress_bar_y, progress_bar_start + border + (scale / 4));
             addch(quarter_tick);
 
-            move(prog_bar_y, progress_bar_start + border + (scale/2));
+            move(progress_bar_y, progress_bar_start + border + (scale / 2));
             addch(quarter_tick);
 
-            move(prog_bar_y, progress_bar_start + border + (scale*3/4));
+            move(progress_bar_y, progress_bar_start + border + (scale * 3/4));
             addch(quarter_tick);
 
-            move(prog_bar_y, progress_bar_start + border + scale - 1);
+            move(progress_bar_y, progress_bar_start + border + scale - 1);
             printw("]");
-        } else printw("N/A");
+        }
+        else
+        {
+            move(progress_bar_y - 1, (max_col / 2) - (strlen("Progress: ") / 2));
+            attron(A_BOLD);
+            printw("Progress: ");
+            attroff(A_BOLD);
+            move(progress_bar_y - 1, (max_col / 2));
+            printw("N/A");
+        }
 
         refresh(); // Update the screen
 
