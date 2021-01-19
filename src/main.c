@@ -120,6 +120,8 @@ int main(void)
         char *bed_target_temp = get_value(bed, "target");
 
         // Print dashboard title
+        move(1, 0);
+        clrtoeol();
         move(1, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
         attron(A_STANDOUT);
         if (strcmp(state, "Printing\n") == 0)
