@@ -10,7 +10,6 @@ int main(void)
 {
     // Set up config variables, API variables
     config_t cfg;
-    config_setting_t *setting;
     const char *ADDR;
     const char *KEY;
     const char *DASHBOARD_MESSAGE;
