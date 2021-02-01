@@ -225,3 +225,41 @@ void open_error_win() {
   }
   destroy_win(error_win);
 }
+
+// void draw_big_num(char* big_num, int y, int x) {
+//     if (big_num == NULL) return;
+    
+//     // int pos = 0;
+//     // while (big_num[pos] != '\0') {
+//     //     if (big_num[pos] != '/') {
+//     //         addch(big_num[pos]);
+//     //     } else {
+//     //         move(y + ++rows, x);
+//     //     }
+//     //     pos++;
+//     // }
+
+//     move(y, x);
+//     int rows = 0;
+//     for (size_t i = 0; i < strlen(big_num); i++) {
+//     char c = big_num[i];
+//     if (c != '/') {
+//         addch(c);
+//     } else {
+//         move(y + ++rows, x);
+//     }
+//     pos++;
+//     }
+// }
+
+void draw_big_num(char* big_num, int y, int x) {
+    int rows = 0;
+    move(y, x);
+    for (int i = 0; i < 70; i++) {
+        if (big_num[i] != '/') {
+            addch(big_num[i]);
+        } else {
+            move(y + ++rows, x);
+        }
+    }
+}

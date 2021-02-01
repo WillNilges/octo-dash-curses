@@ -6,6 +6,36 @@
 #include <ncurses.h>
 #include "util.h"
 
+typedef struct big_num {
+    char num_data[70];
+} big_num;
+
+big_num big_numbers[11] = {
+    {" ######  /##  #### /## ## ## /####  ## / ######  /         /         /"},
+    {" ##      /###      / ##      / ##      / ##      /         /         /"},
+    {"######   /     ##  / #####   /##       /#######  /         /         /"},
+    {"######   /     ##  / #####   /     ##  /######   /         /         /"},
+    {"##   ##  /##   ##  /#######  /     ##  /     ##  /         /         /"},
+    {"#######  /##       /#######  /     ##  /#######  /         /         /"},
+    {" ######  /##       /#######  /##    ## / ######  /         /         /"},
+    {"#######  /     ##  /    ##   /   ##    /   ##    /         /         /"},
+    {" #####   /##   ##  / #####   /##   ##  / #####   /         /         /"},
+    {" #####   /##   ##  / ######  /     ##  / #####   /         /         /"},
+    {"##  ##   /   ##    /  ##     / ##      /##  ##   /         /         /"},
+};
+
+// const char num_zero[70]   = " ######  /##  #### /## ## ## /####  ## / ######  /         /         /";
+// const char num_one[70]    = " ##      /###      / ##      / ##      / ##      /         /         /";
+// const char num_two[70]    = "######   /     ##  / #####   /##       /#######  /         /         /";
+// const char num_three[70]  = "######   /     ##  / #####   /     ##  /######   /         /         /";
+// const char num_four[70]   = "##   ##  /##   ##  /#######  /     ##  /     ##  /         /         /";
+// const char num_five[70]   = "#######  /##       /#######  /     ##  /#######  /         /         /";
+// const char num_six[70]    = " ######  /##       /#######  /##    ## / ######  /         /         /";
+// const char num_seven[70]  = "#######  /     ##  /    ##   /   ##    /   ##    /         /         /";
+// const char num_eight[70]  = " #####   /##   ##  / #####   /##   ##  / #####   /         /         /";
+// const char num_nine[70]   = " #####   /##   ##  / ######  /     ##  / #####   /         /         /";
+// const char num_pct[70]    = "##  ##   /   ##    /  ##     / ##      /##  ##   /         /         /";
+
 int main(void)
 {
     // Set up config variables, API variables
@@ -250,6 +280,16 @@ int main(void)
 
             move(progress_bar_y, progress_bar_start + border + scale - 1);
             printw("]");
+
+            // Big nums (fuck yea)
+            int big_num_x = max_col-48;
+            int big_num_y = 15;
+            char fmtted_percent_complete[10];
+            snprintf(fmtted_percent_complete, 10, "%03d", rounded_percent);
+
+            for (int digit = 0; digit < 3; digit++)
+                draw_big_num(big_numbers[fmtted_percent_complete[digit] - '0'].num_data, big_num_y, big_num_x + (10*(digit+1)));
+            draw_big_num(big_numbers[10].num_data, big_num_y, big_num_x + 40);
         }
         else
         {
