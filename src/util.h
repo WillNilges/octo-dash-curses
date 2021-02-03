@@ -2,6 +2,11 @@
 #define UTIL_H
 
 #include <string.h>
+#include <curl/curl.h>
+#include <stdlib.h>
+#include <ncurses.h>
+#include <unistd.h>
+
 #include "jsmn.h"
 
 // Boneless string, becaue I don't feel like figuring out how long these
@@ -17,6 +22,10 @@ struct Duration {
     int sec;
 };
 
+/* WHAT CAN POSSIBLY GO WRONG? */
+extern const char *ERROR;
+extern const char *MALFORMED;
+
 void init_string(struct string *s);
 
 size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s);
@@ -30,13 +39,5 @@ char *get_value(char *json_blob, char *seek);
 char *call_octoprint(char *api_call, const char *key);
 
 int check_alive(char *reply);
-
-WINDOW *create_newwin(int height, int width, int starty, int startx);
-
-void destroy_win(WINDOW *local_win);
-
-void open_error_win();
-
-void draw_big_num(wchar_t* big_num, int y, int x);
 
 #endif

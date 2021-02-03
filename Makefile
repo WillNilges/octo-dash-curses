@@ -1,6 +1,6 @@
 cc=gcc
 
-odc: build/main.o build/util.o build/jsmn.o
+odc: build/main.o build/graphics.o build/util.o build/jsmn.o
 	gcc -o $@ -lcurl -lncursesw -lm -lconfig $^ -I.
 
 build/%.o: src/%.c

@@ -4,26 +4,10 @@
 #include <unistd.h>
 #include <libconfig.h>
 #include <ncurses.h>
-#include "util.h"
 #include <locale.h>
 
-typedef struct big_num {
-    wchar_t num_data[70];
-} big_num;
-
-big_num big_numbers[11] = {
-    {L" ██████  /██  ████ /██ ██ ██ /████  ██ / ██████  /         /         /"},
-    {L" ██      /███      / ██      / ██      / ██      /         /         /"},
-    {L"██████   /     ██  / █████   /██       /███████  /         /         /"},
-    {L"██████   /     ██  / █████   /     ██  /██████   /         /         /"},
-    {L"██   ██  /██   ██  /███████  /     ██  /     ██  /         /         /"},
-    {L"███████  /██       /███████  /     ██  /███████  /         /         /"},
-    {L" ██████  /██       /███████  /██    ██ / ██████  /         /         /"},
-    {L"███████  /     ██  /    ██   /   ██    /   ██    /         /         /"},
-    {L" █████   /██   ██  / █████   /██   ██  / █████   /         /         /"},
-    {L" █████   /██   ██  / ██████  /     ██  / █████   /         /         /"},
-    {L"██  ██   /   ██    /  ██     / ██      /██  ██   /         /         /"},
-};
+#include "util.h"
+#include "graphics.h"
 
 int main(void)
 {
@@ -86,7 +70,7 @@ int main(void)
 
     setlocale(LC_ALL, "");
     initscr(); // Start ncurses.
-    curs_set(0);           // Don't show terminal cursor
+    curs_set(0); // Don't show terminal cursor
 
     // Set up color
     start_color();
@@ -273,7 +257,7 @@ int main(void)
             printw("]");
 
             // Big nums (fuck yea)
-            int big_num_x = max_col-48;
+            int big_num_x = max_col - 48; // We need about 48 columns to display three digits and a percent sign.
             int big_num_y = 15;
             char fmtted_percent_complete[10];
             snprintf(fmtted_percent_complete, 10, "%03d", rounded_percent);
