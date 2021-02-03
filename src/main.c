@@ -6,6 +6,7 @@
 #include <ncurses.h>
 #include <locale.h>
 
+// #include "data.h"
 #include "util.h"
 #include "graphics.h"
 
@@ -13,10 +14,10 @@ int main(void)
 {
     // Set up config variables, API variables
     config_t cfg;
-    const char *ADDR;
-    const char *KEY;
-    const char *DASHBOARD_MESSAGE;
-    const char *NO_PRINT_MESSSAGE;
+    const char* ADDR;
+    const char* KEY;
+    const char* DASHBOARD_MESSAGE;
+    const char* NO_PRINT_MESSSAGE;
 
     int refresh;
     int border;
