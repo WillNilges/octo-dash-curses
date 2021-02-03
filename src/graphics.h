@@ -14,6 +14,11 @@ struct big_num {
 
 extern const struct big_num big_numbers[11];
 
+extern const char* PRINT_NAME;
+extern const char* OWNER;
+extern const char* PRINT_HEAD;
+extern const char* BED;
+
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 
 void destroy_win(WINDOW *local_win);

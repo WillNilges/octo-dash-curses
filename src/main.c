@@ -7,7 +7,7 @@
 #include <locale.h>
 
 // #include "data.h"
-#include "util.h"
+#include "api.h"
 #include "graphics.h"
 
 int main(void)
@@ -79,10 +79,10 @@ int main(void)
     init_pair(2, COLOR_YELLOW, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_BLUE, COLOR_BLACK);
-    init_pair(5, COLOR_BLACK, COLOR_RED);
-    init_pair(6, COLOR_BLACK, COLOR_YELLOW);
-    init_pair(7, COLOR_BLACK, COLOR_GREEN);
-    init_pair(8, COLOR_BLACK, COLOR_BLUE);
+    // init_pair(11, COLOR_WHITE, COLOR_RED);
+    // init_pair(12, COLOR_WHITE, COLOR_YELLOW);
+    // init_pair(13, COLOR_WHITE, COLOR_GREEN);
+    // init_pair(14, COLOR_WHITE, COLOR_BLUE);
 
     // Get bounds of display
     int max_row,max_col;
@@ -134,12 +134,6 @@ int main(void)
         else 
             printw(NO_PRINT_MESSSAGE);
         attroff(A_STANDOUT);
-
-        // Set up the titles of the data we just acquired
-        const char *PRINT_NAME = "  Print name: ";
-        const char *OWNER      = "       Owner: ";
-        const char *PRINT_HEAD = "  Print head: ";
-        const char *BED        = "         Bed: ";
 
         // Show the file name of the current print
         move(3, border);
@@ -226,39 +220,43 @@ int main(void)
             printw("%%\n");
 
             // Draw a progress bar
+            //Move to the start of the bar and clear the line to re-draw the bar
             move(progress_bar_y, progress_bar_start);
             clrtoeol();
-            printw("[");
-            for (int i = 0; i < (float_percent / 100) * scale; i++)
+            addch('[');
+
+            // Draw the progress into the print
+            for (int i = 1; i <= (float_percent / 100) * scale; i++)
             {
-                if (float_percent >= 00) prog_zone = 5;
-                if (float_percent >= 25) prog_zone = 6;
-                if (float_percent >= 50) prog_zone = 7;
-                if (float_percent >= 75) prog_zone = 8;
+                if (float_percent >= 00) prog_zone = 1;
+                if (float_percent >= 25) prog_zone = 2;
+                if (float_percent >= 50) prog_zone = 3;
+                if (float_percent >= 75) prog_zone = 4;
                 attron(COLOR_PAIR(prog_zone));
-                addch(' ');
+                wchar_t bar_tick[] = {L'█', L'\0'};
+                mvaddwstr(progress_bar_y, progress_bar_start + i, bar_tick);
                 attroff(COLOR_PAIR(prog_zone));
             }
             
             for (int i = 0; i < scale - ((float_percent / 100) * scale); i++)
                 printw(" ");
 
-            char quarter_tick = '|';
+            // Draw tick marks on the quarters
+            attron(COLOR_PAIR(prog_zone));
+            attron(A_BOLD);
+            wchar_t quarter_tick[] = {L'▚', L'\0'};
+            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale / 4), quarter_tick);   // 25 %
+            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale / 2), quarter_tick);   // 50 %
+            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale * 3/4), quarter_tick); // 75 %
+            attron(A_BOLD);
+            attroff(COLOR_PAIR(prog_zone));
 
-            move(progress_bar_y, progress_bar_start + border + (scale / 4));
-            addch(quarter_tick);
-
-            move(progress_bar_y, progress_bar_start + border + (scale / 2));
-            addch(quarter_tick);
-
-            move(progress_bar_y, progress_bar_start + border + (scale * 3/4));
-            addch(quarter_tick);
-
+            // Cap off the progress bar
             move(progress_bar_y, progress_bar_start + border + scale - 1);
             printw("]");
 
-            // Big nums (fuck yea)
-            int big_num_x = max_col - 48; // We need about 48 columns to display three digits and a percent sign.
+            // Print the percent complete in bold
+            int big_num_x = max_col/2 - 28; // 28 *roughly* centers the percentage.
             int big_num_y = 15;
             char fmtted_percent_complete[10];
             snprintf(fmtted_percent_complete, 10, "%03d", rounded_percent);
