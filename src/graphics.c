@@ -86,7 +86,7 @@ void open_error_win() {
   destroy_win(error_win);
 }
 
-void draw_big_num(wchar_t* big_num, int y, int x) {
+void draw_big_num(const wchar_t* big_num, int y, int x) {
     int rows = 0;
     int cols = 0;
     for (int i = 0; i < 70; i++) {
