@@ -1,10 +1,10 @@
 cc=gcc
 
-odc: build/data.o build/main.o build/util.o build/graphics.o build/jsmn.o
+odc: build/data.o build/main.o build/api.o build/graphics.o build/jsmn.o
 	gcc -o $@ -lcurl -lncursesw -lm -lconfig $^ -I.
 
 
-thefuck: build/data.o build/main.o build/util.o build/graphics.o build/jsmn.o
+thefuck: build/data.o build/main.o build/api.o build/graphics.o build/jsmn.o
 	gcc -o $@ -g -g0 -ggdb -lcurl -lncursesw -lm -lconfig $^ -I.
 
 build/%.o: src/%.c

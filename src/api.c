@@ -1,4 +1,4 @@
-#include "util.h"
+#include "api.h"
 
 // Parses a time in seconds into a struct for hours, minutes, and seconds. 
 struct Duration format_time(char* time_seconds) {
