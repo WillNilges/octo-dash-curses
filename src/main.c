@@ -45,7 +45,7 @@ int main(void)
     config_lookup_int(&cfg, "scale", &scale);
 
     // Let's get some basic info about what's printing.
-    char *job_call = "/api/job";
+    char* job_call = "/api/job";
 
     // Construct the curl URL
     char job_address[strlen(ADDR) + strlen(job_call)];
@@ -53,7 +53,7 @@ int main(void)
     strcat(job_address, job_call);
 
     //Specify the API path to use
-    char *printer_call = "/api/printer";
+    char* printer_call = "/api/printer";
 
     // Construct the curl URL
     char printer_address[strlen(ADDR) + strlen(printer_call)];
@@ -62,7 +62,7 @@ int main(void)
 
     // Check if the octoprint server is alive.
     // If it's not then don't let the user open odc.
-    char *printer = call_octoprint(printer_address, KEY);
+    char* printer = call_octoprint(printer_address, KEY);
     if (check_alive(printer) == 1)
     {
         printf("Error: Can't contact the OctoPrint server.\0");
@@ -70,7 +70,7 @@ int main(void)
     }
 
     setlocale(LC_ALL, "");
-    initscr(); // Start ncurses.
+    initscr();   // Start ncurses
     curs_set(0); // Don't show terminal cursor
 
     // Set up color
@@ -79,10 +79,6 @@ int main(void)
     init_pair(2, COLOR_YELLOW, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_BLUE, COLOR_BLACK);
-    // init_pair(11, COLOR_WHITE, COLOR_RED);
-    // init_pair(12, COLOR_WHITE, COLOR_YELLOW);
-    // init_pair(13, COLOR_WHITE, COLOR_GREEN);
-    // init_pair(14, COLOR_WHITE, COLOR_BLUE);
 
     // Get bounds of display
     int max_row,max_col;
@@ -93,21 +89,21 @@ int main(void)
         /* === DATA COLLECTION === */
 
         // Get some basic info about what's printing
-        char *job = call_octoprint(job_address, KEY);
+        char* job = call_octoprint(job_address, KEY);
 
         // Make sure that we don't have some kind of error message
         if (check_alive(job) == 1)
             open_error_win();
         
         // Get basic data we want to display
-        char *user = get_value(job, "user");
-        char *name = get_value(job, "name");
-        char *time_spent = get_value(job, "printTime"); // In seconds
-        char *percent_complete = get_value(job, "completion"); // In percent
-        char *state = get_value(job, "state");
+        char* user = get_value(job, "user");
+        char* name = get_value(job, "name");
+        char* time_spent = get_value(job, "printTime"); // In seconds
+        char* percent_complete = get_value(job, "completion"); // In percent
+        char* state = get_value(job, "state");
 
         // Get some basic info about the print head and print bed
-        char *printer = call_octoprint(printer_address, KEY);
+        char* printer = call_octoprint(printer_address, KEY);
         if (check_alive(printer) == 1)
             open_error_win();
 
@@ -115,14 +111,17 @@ int main(void)
         // multiple tools.
 
         // Get print head temps
-        char *print_head = get_value(printer, "tool0");
-        char *print_head_actual_temp = get_value(print_head, "actual");
-        char *print_head_target_temp = get_value(print_head, "target");
+        char* print_head = get_value(printer, "tool0");
+        char* print_head_actual_temp = get_value(print_head, "actual");
+        char* print_head_target_temp = get_value(print_head, "target");
 
         // Get print bed temps
-        char *bed = get_value(printer, "bed");
-        char *bed_actual_temp = get_value(bed, "actual");
-        char *bed_target_temp = get_value(bed, "target");
+        char* bed = get_value(printer, "bed");
+        char* bed_actual_temp = get_value(bed, "actual");
+        char* bed_target_temp = get_value(bed, "target");
+
+
+        /* === RENDER DASHBOARD === */
 
         // Print dashboard title
         move(1, 0);
@@ -202,7 +201,8 @@ int main(void)
 
             // Display time elapsed printing
             move(11, (max_col / 2) + (scale / 2) - 7);
-            if (strcmp(time_spent, "null") != 0){
+            if (strcmp(time_spent, "null") != 0)
+            {
                 struct Duration parsed_time_spent = format_time(time_spent);
                 printw(
                     "%02d:%02d:%02d",
@@ -210,7 +210,9 @@ int main(void)
                     parsed_time_spent.min,
                     parsed_time_spent.sec
                 );
-            } else printw("N/A");
+            }
+            else
+                printw("N/A");
 
             // Display percent complete
             move(progress_bar_y + 1, (max_col / 2) + (scale / 2) - 3);
