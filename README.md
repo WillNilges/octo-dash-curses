@@ -35,7 +35,7 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 
 ### Building
 
-- Clone the repo, run `make`, and put `odc` somewhere on your `$PATH` along with an `api.cfg` file.
+- Clone the repo, run `make`, and put `odc` somewhere convenient for you. Be sure to keep the api.cfg file and the binary together (sorry).
 - Run it, and you'll be presented with a dashboard that looks something like this:
 
 ```

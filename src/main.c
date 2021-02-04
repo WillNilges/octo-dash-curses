@@ -6,7 +6,6 @@
 #include <ncurses.h>
 #include <locale.h>
 
-// #include "data.h"
 #include "api.h"
 #include "graphics.h"
 
@@ -46,16 +45,12 @@ int main(void)
 
     // Let's get some basic info about what's printing.
     char* job_call = "/api/job";
-
-    // Construct the curl URL
     char job_address[strlen(ADDR) + strlen(job_call)];
     strcpy(job_address, ADDR);
     strcat(job_address, job_call);
 
-    //Specify the API path to use
+    // Specify the API path to use
     char* printer_call = "/api/printer";
-
-    // Construct the curl URL
     char printer_address[strlen(ADDR) + strlen(printer_call)];
     strcpy(printer_address, ADDR);
     strcat(printer_address, printer_call);
@@ -84,7 +79,7 @@ int main(void)
     int max_row,max_col;
     getmaxyx(stdscr, max_row, max_col);
     
-    for(;;)
+    while(1)
     {
         /* === DATA COLLECTION === */
 
