@@ -60,8 +60,6 @@ int main(void)
     strcpy(printer_address, ADDR);
     strcat(printer_address, printer_call);
 
-    #if 1
-
     // Check if the octoprint server is alive.
     // If it's not then don't let the user open odc.
     char* printer = call_octoprint(printer_address, KEY);
@@ -70,63 +68,8 @@ int main(void)
         printf("Error: Can't contact the OctoPrint server.\n");
         return 1;
     }
-    free(printer);
 
-            // Get some basic info about what's printing
-        char* job = call_octoprint(job_address, KEY);
-        // cJSON* job_json = cJSON_Parse(job);
-        // char* string = cJSON_Print(job_json);
-        // printf("D E B U G: %s\n", string);
-        //     cJSON* job_job_json = cJSON_GetObjectItem(job_json, "job");
-        //         cJSON* file_json = cJSON_GetObjectItem(job_job_json, "file");
-        //             char* name = cJSON_GetObjectItem(file_json, "name")->valuestring;
-        //         char* user = cJSON_GetObjectItem(job_job_json, "user")->valuestring;
-        //         char* state = cJSON_GetObjectItem(job_json, "state")->valuestring;
-        //     cJSON* progress_json = cJSON_GetObjectItem(job_json, "progress");
-        //         double percent_complete = cJSON_GetObjectItem(progress_json, "completion")->valuedouble;
-        //         int time_spent = cJSON_GetObjectItem(progress_json, "printTime")->valueint;
-        
-        // cJSON_Delete(jout);
-        
-        // free(name);
-        // free(user);
-        // free(state);
-        
-        
-        
-        // cJSON_Delete(progress_json);
-        // cJSON_Delete(file_json);
-        // cJSON_Delete(job_job_json);
-        // cJSON_Delete(job_json);
-
-        cJSON* root = cJSON_Parse(job);
-        cJSON* job_json = cJSON_GetObjectItem(root,"job");
-        if(job_json)
-        {
-            cJSON* json_child = job_json->child;
-            char* string;
-            while(json_child)
-            {
-                // get and print key
-                string = cJSON_Print(json_child);
-                printf("D E B U G: %s\n", string);
-
-
-                json_child = json_child->next;
-            }
-            free(string);
-            cJSON_Delete(json_child);
-        }
-
-        // cJSON_Delete(job_json);
-        cJSON_Delete(root);
-        free(job);
-        
-
-    #endif
-        config_destroy(&cfg);
-
-    #if 0
+    #if 1
     
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
@@ -355,5 +298,6 @@ int main(void)
     }
     endwin(); // End curses mode
     #endif
+    config_destroy(&cfg);
     return 0;
 }
