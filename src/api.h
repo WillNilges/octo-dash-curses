@@ -33,7 +33,7 @@ char* call_octoprint(char* api_call, const char* key);
 
 int check_alive(char* reply);
 
-struct Duration format_time(char* time_in_seconds);
+struct Duration format_time(int time_seconds);
 
 
 #endif
