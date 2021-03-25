@@ -1,13 +1,15 @@
-cc=gcc
+CC=gcc
+LIBS=-lcurl -lncursesw -lm -lconfig -lcjson
+CFLAGS=-Wall -std=c99 -pedantic -g -DMOVE_IO_CLOSE
 
-odc: build/data.o build/main.o build/api.o build/graphics.o build/jsmn.o
-	gcc -o $@ -lcurl -lncursesw -lm -lconfig $^ -I.
+odc: build/data.o build/main.o build/api.o build/graphics.o 
+	$(CC) -o $@ $(LIBS) $^ -I.
 
 
 build/%.o: src/%.c
 	@mkdir -p $(@D)
 	@printf "  CC      $(*).c\n"
-	$(PREFIX)$(CC) -DNCURSES_WIDECHAR=1 $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
+	$(CC) -DNCURSES_WIDECHAR=1 $(CFLAGS) -o $@ -c $<
 
 clean:
 	rm -rf build
