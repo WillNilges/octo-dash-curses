@@ -35,6 +35,7 @@ char* call_octoprint(char* api_call, const char* key) {
 
     struct curl_slist* list = NULL;
 
+    // curl_global_init(); // TODO: FIX MEMORY LEAKS
     curl = curl_easy_init();
     if(curl) {
         struct string s;
@@ -63,8 +64,11 @@ char* call_octoprint(char* api_call, const char* key) {
         /* always cleanup */
         curl_slist_free_all(list);
         curl_easy_cleanup(curl);
+        curl_global_cleanup();
         return s.ptr; // Fuck you.
     }
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
     return 0;
 }
 
@@ -86,14 +90,12 @@ int check_alive(char* reply) {
 /* MISC */
 
 // Parses a time in seconds into a struct for hours, minutes, and seconds. 
-struct Duration format_time(char* time_seconds) {
-    int int_time_seconds = atoi(time_seconds);
-
+struct Duration format_time(int time_seconds) {
     struct Duration parsed_time;
 
-    int seconds = int_time_seconds % 60;
-    int minutes = (int_time_seconds / 60) % 60;
-    int hours = int_time_seconds / 3600;
+    int seconds = time_seconds % 60;
+    int minutes = (time_seconds / 60) % 60;
+    int hours = time_seconds / 3600;
 
     parsed_time.hr = hours;
     parsed_time.min = minutes;

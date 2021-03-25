@@ -60,6 +60,8 @@ int main(void)
     strcpy(printer_address, ADDR);
     strcat(printer_address, printer_call);
 
+    #if 1
+
     // Check if the octoprint server is alive.
     // If it's not then don't let the user open odc.
     char* printer = call_octoprint(printer_address, KEY);
@@ -68,8 +70,63 @@ int main(void)
         printf("Error: Can't contact the OctoPrint server.\n");
         return 1;
     }
+    free(printer);
 
-    #if 1
+            // Get some basic info about what's printing
+        char* job = call_octoprint(job_address, KEY);
+        // cJSON* job_json = cJSON_Parse(job);
+        // char* string = cJSON_Print(job_json);
+        // printf("D E B U G: %s\n", string);
+        //     cJSON* job_job_json = cJSON_GetObjectItem(job_json, "job");
+        //         cJSON* file_json = cJSON_GetObjectItem(job_job_json, "file");
+        //             char* name = cJSON_GetObjectItem(file_json, "name")->valuestring;
+        //         char* user = cJSON_GetObjectItem(job_job_json, "user")->valuestring;
+        //         char* state = cJSON_GetObjectItem(job_json, "state")->valuestring;
+        //     cJSON* progress_json = cJSON_GetObjectItem(job_json, "progress");
+        //         double percent_complete = cJSON_GetObjectItem(progress_json, "completion")->valuedouble;
+        //         int time_spent = cJSON_GetObjectItem(progress_json, "printTime")->valueint;
+        
+        // cJSON_Delete(jout);
+        
+        // free(name);
+        // free(user);
+        // free(state);
+        
+        
+        
+        // cJSON_Delete(progress_json);
+        // cJSON_Delete(file_json);
+        // cJSON_Delete(job_job_json);
+        // cJSON_Delete(job_json);
+
+        cJSON* root = cJSON_Parse(job);
+        cJSON* job_json = cJSON_GetObjectItem(root,"job");
+        if(job_json)
+        {
+            cJSON* json_child = job_json->child;
+            char* string;
+            while(json_child)
+            {
+                // get and print key
+                string = cJSON_Print(json_child);
+                printf("D E B U G: %s\n", string);
+
+
+                json_child = json_child->next;
+            }
+            free(string);
+            cJSON_Delete(json_child);
+        }
+
+        // cJSON_Delete(job_json);
+        cJSON_Delete(root);
+        free(job);
+        
+
+    #endif
+        config_destroy(&cfg);
+
+    #if 0
     
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
@@ -86,7 +143,9 @@ int main(void)
     int max_row,max_col;
     getmaxyx(stdscr, max_row, max_col);
     
-    while(1)
+    timeout(0);
+
+    while(getch() != 'q')
     {
         /* === DATA COLLECTION === */
 
@@ -95,17 +154,12 @@ int main(void)
         cJSON* job_json = cJSON_Parse(job);
             cJSON* job_job_json = cJSON_GetObjectItem(job_json, "job");
                 cJSON* file_json = cJSON_GetObjectItem(job_job_json, "file");
-                    // cJSON* name_json = cJSON_GetObjectItem(file_json, "name");
                     char* name = cJSON_GetObjectItem(file_json, "name")->valuestring;
-                // cJSON* user_json = cJSON_GetObjectItem(job_job_json, "user");
-                    char* user = cJSON_GetObjectItem(job_job_json, "user")->valuestring;
-            cJSON* state_json = cJSON_GetObjectItem(job_json, "state");
-                char* state = state_json->valuestring;
+                char* user = cJSON_GetObjectItem(job_job_json, "user")->valuestring;
+                char* state = cJSON_GetObjectItem(job_json, "state")->valuestring;
             cJSON* progress_json = cJSON_GetObjectItem(job_json, "progress");
-                // cJSON* completion_json = cJSON_GetObjectItem(progress_json, "completion");
-                    double percent_complete = cJSON_GetObjectItem(progress_json, "completion")->valuedouble;
-                // cJSON* print_time_json = cJSON_GetObjectItem(progress_json, "printTime");
-                    int time_spent = cJSON_GetObjectItem(progress_json, "printTime")->valueint;
+                double percent_complete = cJSON_GetObjectItem(progress_json, "completion")->valuedouble;
+                int time_spent = cJSON_GetObjectItem(progress_json, "printTime")->valueint;
         
         // Get some basic info about the print head and print bed
         char* printer = call_octoprint(printer_address, KEY);
@@ -132,10 +186,12 @@ int main(void)
 
         /* === RENDER DASHBOARD === */
 
+        int current_line = border;
+
         // Print dashboard title
-        move(1, 0);
+        move(current_line, 0);
         clrtoeol();
-        move(1, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
+        move(current_line, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
         attron(A_STANDOUT);
         if (strcmp(state, "Printing") == 0)
             printw(DASHBOARD_MESSAGE);
@@ -144,7 +200,8 @@ int main(void)
         attroff(A_STANDOUT);
 
         // Show the file name of the current print
-        move(3, border);
+        current_line += 2;
+        move(current_line, border);
         attron(A_BOLD);
         printw(PRINT_NAME);
         attroff(A_BOLD);
@@ -154,7 +211,8 @@ int main(void)
             printw("N/A");
 
         // Show the username of whoever started the print
-        move(4, border);
+        current_line++;
+        move(current_line, border);
         attron(A_BOLD);
         printw(OWNER);
         attroff(A_BOLD);
@@ -163,10 +221,9 @@ int main(void)
         else
             printw("N/A");
 
-        int temperature_spacing;
-
         // Display print head temps
-        move(6, border);
+        current_line += 2;
+        move(current_line, border);
         clrtoeol();
         attron(A_BOLD);
         printw(PRINT_HEAD);
@@ -177,7 +234,8 @@ int main(void)
         );
 
         // Display bed temps
-        move(7, border);
+        current_line++;
+        move(current_line, border);
         clrtoeol();
         attron(A_BOLD);
         printw(BED);
@@ -189,12 +247,12 @@ int main(void)
 
         // Display the progress bar and progress bar accessories
         int progress_bar_start = (max_col / 2) - (scale / 2);
-        int progress_bar_y = 12;
+        current_line += 4;
         int prog_zone;
         if (percent_complete)
         {
             // Print printer state
-            move(progress_bar_y - 1, progress_bar_start + 1);
+            move(current_line - 1, progress_bar_start + 1);
             clrtoeol();
             if (percent_complete >= 100)
                 printw("Done!");
@@ -205,9 +263,7 @@ int main(void)
             move(11, (max_col / 2) + (scale / 2) - 7);
             if (time_spent)
             {
-                char unformatted_time[10];
-                snprintf(unformatted_time, 10, "%d", time_spent);
-                struct Duration parsed_time_spent = format_time(unformatted_time);
+                struct Duration parsed_time_spent = format_time(time_spent);
                 printw(
                     "%02d:%02d:%02d",
                     parsed_time_spent.hr,
@@ -219,14 +275,14 @@ int main(void)
                 printw("N/A");
 
             // Display percent complete
-            move(progress_bar_y + 1, (max_col / 2) + (scale / 2) - 3);
+            move(current_line + 1, (max_col / 2) + (scale / 2) - 3);
             int rounded_percent = (int) round(percent_complete);
             printw("%03d", rounded_percent);
             printw("%%\n");
 
             // Draw a progress bar
             //Move to the start of the bar and clear the line to re-draw the bar
-            move(progress_bar_y, progress_bar_start);
+            move(current_line, progress_bar_start);
             clrtoeol();
             addch('[');
 
@@ -239,7 +295,7 @@ int main(void)
                 if (percent_complete >= 75) prog_zone = 4;
                 attron(COLOR_PAIR(prog_zone));
                 wchar_t bar_tick[] = {L'█', L'\0'};
-                mvaddwstr(progress_bar_y, progress_bar_start + i, bar_tick);
+                mvaddwstr(current_line, progress_bar_start + i, bar_tick);
                 attroff(COLOR_PAIR(prog_zone));
             }
             
@@ -250,35 +306,43 @@ int main(void)
             attron(COLOR_PAIR(prog_zone));
             attron(A_BOLD);
             wchar_t quarter_tick[] = {L'▚', L'\0'};
-            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale / 4), quarter_tick);   // 25 %
-            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale / 2), quarter_tick);   // 50 %
-            mvaddwstr(progress_bar_y, progress_bar_start + border + (scale * 3/4), quarter_tick); // 75 %
+            mvaddwstr(current_line, progress_bar_start + (scale * 0.25), quarter_tick);
+            mvaddwstr(current_line, progress_bar_start + (scale * 0.50), quarter_tick);
+            mvaddwstr(current_line, progress_bar_start + (scale * 0.75), quarter_tick);
             attron(A_BOLD);
             attroff(COLOR_PAIR(prog_zone));
 
             // Cap off the progress bar
-            move(progress_bar_y, progress_bar_start + border + scale - 1);
+            move(current_line, progress_bar_start + border + scale - 1);
             printw("]");
 
             // Print the percent complete in bold
             int big_num_x = max_col/2 - 28; // 28 *roughly* centers the percentage.
-            int big_num_y = 15;
+            current_line += 3;
             char fmtted_percent_complete[10];
             snprintf(fmtted_percent_complete, 10, "%03d", rounded_percent);
 
             for (int digit = 0; digit < 3; digit++)
-                draw_big_num(big_numbers[fmtted_percent_complete[digit] - '0'].num_data, big_num_y, big_num_x + (10*(digit+1)));
-            draw_big_num(big_numbers[10].num_data, big_num_y, big_num_x + 40);
+                draw_big_num(big_numbers[fmtted_percent_complete[digit] - '0'].num_data, current_line, big_num_x + (10*(digit+1)));
+            draw_big_num(big_numbers[10].num_data, current_line, big_num_x + 40);
         }
         else
         {
-            move(progress_bar_y - 1, (max_col / 2) - (strlen("Progress: ") / 2));
+            move(current_line - 1, (max_col / 2) - (strlen("Progress: ") / 2));
             attron(A_BOLD);
             printw("Progress: ");
             attroff(A_BOLD);
-            move(progress_bar_y - 1, (max_col / 2));
+            move(current_line - 1, (max_col / 2));
             printw("N/A");
         }
+        
+        current_line += 6;
+        move(current_line, border);
+        clrtoeol();
+        attroff(A_BOLD);
+        printw("(refreshing every %d seconds)", refresh);
+        move(current_line, max_col - 18 - border);
+        printw("press 'q' to quit.");
 
         refresh(); // Update the screen
 
