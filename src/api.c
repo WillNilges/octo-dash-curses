@@ -1,67 +1,5 @@
 #include "api.h"
 
-// Parses a time in seconds into a struct for hours, minutes, and seconds. 
-struct Duration format_time(char* time_seconds) {
-    int int_time_seconds = atoi(time_seconds);
-
-    struct Duration parsed_time;
-
-    int seconds = int_time_seconds % 60;
-    int minutes = (int_time_seconds / 60) % 60;
-    int hours = int_time_seconds / 3600;
-
-    parsed_time.hr = hours;
-    parsed_time.min = minutes;
-    parsed_time.sec = seconds;
-    return parsed_time;
-}
-
-/* JSON STUFF */
-
-static int jsoneq(const char* json, jsmntok_t* tok, const char* s) {
-    if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
-    strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-        return 0;
-    }
-    return -1;
-}
-
-// Parse through a JSON blob recursively to acquire a specific key.
-char* get_value(char* json_blob, char* seek) {
-    // Set up all the shit we need
-    int r;
-    jsmn_parser p;
-    jsmntok_t t[128];
-    char* data;
-
-    // Initialize JSMN
-    jsmn_init(&p);
-    r = jsmn_parse(&p, json_blob, strlen(json_blob), t, sizeof(t) / sizeof(t[0]));
-    for (int i = 1; i < r; i++) {
-        // If we find what we're looking for, grab it and return it.
-        if (jsoneq(json_blob, &t[i], seek) == 0) {
-            data = (char* ) malloc(1000); // I'm guessing this'll be less than 1kb.
-            snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
-                         json_blob + t[i + 1].start);
-            return data;
-        }
-
-        // If not, but we do find another object, check to see if what we're
-        // looking for is in that object.
-        else if ((&t[i])->type == JSMN_OBJECT) {
-            // I Love code duplication.
-            data = (char* ) malloc(1000); // I'm guessing this'll be less than 1kb.
-            snprintf(data, 1000, "%.*s\n", t[i + 1].end - t[i + 1].start,
-                         json_blob + t[i + 1].start);
-            char* keep_looking = get_value(data, seek);
-            free(data);
-        }
-    }
-    // If the JSON doesn't contain the key you're looking for, then return this.
-    char* fail = "Couldn't find anything!";
-    return fail;
-}
-
 /* API */
 
 void init_string(struct string *s) {
@@ -143,4 +81,22 @@ int check_alive(char* reply) {
         strstr(reply, "Offline")
     ) return 1;
     return 0;
+}
+
+/* MISC */
+
+// Parses a time in seconds into a struct for hours, minutes, and seconds. 
+struct Duration format_time(char* time_seconds) {
+    int int_time_seconds = atoi(time_seconds);
+
+    struct Duration parsed_time;
+
+    int seconds = int_time_seconds % 60;
+    int minutes = (int_time_seconds / 60) % 60;
+    int hours = int_time_seconds / 3600;
+
+    parsed_time.hr = hours;
+    parsed_time.min = minutes;
+    parsed_time.sec = seconds;
+    return parsed_time;
 }
