@@ -146,7 +146,7 @@ int main(void)
 
 
         /* === RENDER DASHBOARD === */
-        int current_line = BORDER;
+        int current_line = BORDER/2;
 
         // Print dashboard title
         move(current_line, 0);
@@ -207,7 +207,7 @@ int main(void)
 
         // Display the progress bar and progress bar accessories
         int progress_bar_start = (max_col / 2) - (SCALE / 2);
-        current_line += 4;
+        current_line += 3;
         int prog_zone;
         if (percent_complete)
         {
@@ -220,7 +220,7 @@ int main(void)
                 printw(state);
 
             // Display time elapsed printing
-            move(11, (max_col / 2) + (SCALE / 2) - 7);
+            move(current_line - 1, (max_col / 2) + (SCALE / 2) - 7);
             if (time_spent)
             {
                 struct Duration parsed_time_spent = format_time(time_spent);
