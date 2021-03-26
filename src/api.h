@@ -27,9 +27,11 @@ struct Duration {
 
 void init_string(struct string *s);
 
+void del_string(struct string *s);
+
 size_t writefunc(void* ptr, size_t size, size_t nmemb, struct string* s);
 
-char* call_octoprint(char* api_call, const char* key);
+void call_octoprint(char* dest, char* api_call, const char* key);
 
 int check_alive(char* reply);
 

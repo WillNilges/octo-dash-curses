@@ -13,6 +13,11 @@ void init_string(struct string *s) {
 }
 
 // TODO: Free string
+void del_string(struct string *s) {
+    s->len = 0;
+    free(s->ptr);
+    s->ptr = NULL;
+}
 
 // Function to dump curl responses into strings.
 size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
@@ -31,7 +36,11 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
 
 // Query the octoprint server for data. This is a stupid CURL request, and does not check
 // if it was actually successful.
-char* call_octoprint(char* api_call, const char* key) {
+void call_octoprint(char* dest, char* api_call, const char* key) {
+    if (strlen(key) != 32) { // I believe all OctoPrint API keys are exactly 32 bytes long. 
+        printf("%s\n", MALFORMED); // I'm lazy, so this is how I'm gonna report errors.
+        return;
+    }
     CURL* curl;
     CURLcode res;
 
@@ -44,12 +53,6 @@ char* call_octoprint(char* api_call, const char* key) {
         init_string(&s);
 
         curl_easy_setopt(curl, CURLOPT_URL, api_call);
-        if (strlen(key) != 32) { // I believe all OctoPrint API keys are exactly 32 bytes long. 
-            printf("%s\n", MALFORMED); // I'm lazy, so this is how I'm gonna report errors.
-            curl_slist_free_all(list);
-            curl_easy_cleanup(curl);
-            return (char* ) MALFORMED;
-        }
         char keybase[32+11] = "X-Api-Key: "; // Memory really do be like that.
         strcat(keybase, key);
         list = curl_slist_append(list, keybase);
@@ -57,21 +60,26 @@ char* call_octoprint(char* api_call, const char* key) {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
         res = curl_easy_perform(curl);
-        if (res != 0) {
-            printf("API call returned nonzero value.");
-            curl_slist_free_all(list);
-            curl_easy_cleanup(curl);
-            return (char* ) ERROR;
-        }
+        // if (res != 0) {
+        //     printf("API call returned nonzero value.");
+        //     curl_slist_free_all(list);
+        //     curl_easy_cleanup(curl);
+        //     del_string(&s);
+        //     // return (char* ) ERROR;
+        //     return;
+        // }
         /* always cleanup */
         curl_slist_free_all(list);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
-        return s.ptr; // Fuck you.
+        // strncpy(dest, (int) s.len, s.ptr);
+        memcpy(dest, s.ptr, s.len);
+        del_string(&s);
+        return; // Fuck you.
     }
     curl_easy_cleanup(curl);
     curl_global_cleanup();
-    return 0;
+    return;
 }
 
 // Checks contents of API reply for every possible issue.

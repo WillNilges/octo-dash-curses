@@ -82,15 +82,39 @@ int main(void)
     char printer_address[strlen(ADDR) + strlen(PRINTER_PATH) + 1];
     snprintf(printer_address, strlen(ADDR) + strlen(PRINTER_PATH) + 1, "%s%s", ADDR, PRINTER_PATH);
 
+    job = calloc(2000, sizeof(char));
+    printer = calloc(2000, sizeof(char));
+
     // Check if the octoprint server is alive
     // If it's not then don't let the user open odc
-    printer = call_octoprint(printer_address, KEY);
+    call_octoprint(printer, printer_address, KEY);
     if (check_alive(printer) == 1)
     {
         printf("Error: Can't contact the OctoPrint server.\n");
         free(printer);
         return 1;
     }
+
+    /* === DATA COLLECTION === */
+    call_octoprint(job, job_address, KEY);
+    job_json = cJSON_Parse(job);
+
+    user = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 5)->valuestring; 
+    name = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 3), 2)->valuestring;
+    state = cJSON_GetArrayItem(job_json, 2)->valuestring;
+    percent_complete = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 0)->valuedouble;
+    time_spent = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 2)->valuedouble;
+
+    call_octoprint(printer, printer_address, KEY);
+    printer_json = cJSON_Parse(printer);
+
+    bed_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 0)->valuedouble;
+    bed_target_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 2)->valuedouble;
+
+    print_head_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 0)->valuedouble;
+    print_head_target_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 2)->valuedouble;
+
+
 
     #if 1
     setlocale(LC_ALL, "");
@@ -113,7 +137,7 @@ int main(void)
     while(getch() != 'q')
     {
         /* === DATA COLLECTION === */
-        job = call_octoprint(job_address, KEY);
+        call_octoprint(job, job_address, KEY);
         job_json = cJSON_Parse(job);
 
         user = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 5)->valuestring; 
@@ -122,7 +146,7 @@ int main(void)
         percent_complete = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 0)->valuedouble;
         time_spent = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 2)->valuedouble;
 
-        printer = call_octoprint(printer_address, KEY);
+        call_octoprint(printer, printer_address, KEY);
         printer_json = cJSON_Parse(printer);
 
         bed_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 0)->valuedouble;
@@ -307,8 +331,8 @@ int main(void)
     cJSON_Delete(printer_json);
 
     // IDK why this segfaults.
-    // free(printer);
-    // free(job);
+    free(printer);
+    free(job);
 
     config_destroy(&cfg);
     return 0;
