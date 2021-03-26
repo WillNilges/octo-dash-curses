@@ -31,7 +31,6 @@ int main(void)
     int BORDER;
     int SCALE;
 
-
     // Strings for json blobs
     char* printer;
     char* job;
@@ -54,7 +53,7 @@ int main(void)
     double bed_actual_temp;
     double bed_target_temp;
 
-    // Grab some configs
+    /* === CONFIG PARSING === */
     config_init(&cfg);
 
     // Read the config file. If there is an error, report it and exit.
@@ -66,7 +65,6 @@ int main(void)
         return(EXIT_FAILURE);
     }
 
-    // Dump those configs!
     config_lookup_string(&cfg, "url", &ADDR);
     config_lookup_string(&cfg, "key", &KEY);
     config_lookup_string(&cfg, "dashboard_message", &DASHBOARD_MESSAGE);
@@ -75,28 +73,39 @@ int main(void)
     config_lookup_int(&cfg, "border", &BORDER);
     config_lookup_int(&cfg, "scale", &SCALE);
 
-    // Let's get some basic info about what's printing
+    // Assemble API URLs
     char job_address[strlen(ADDR) + strlen(JOB_PATH) + 1];
-    snprintf(job_address, strlen(ADDR) + strlen(JOB_PATH) + 1, "%s%s", ADDR, JOB_PATH);
+    snprintf(
+        job_address,
+        strlen(ADDR) + strlen(JOB_PATH) + 1,
+        "%s%s",
+        ADDR,
+        JOB_PATH
+    );
 
-    // Specify the API path to use
     char printer_address[strlen(ADDR) + strlen(PRINTER_PATH) + 1];
-    snprintf(printer_address, strlen(ADDR) + strlen(PRINTER_PATH) + 1, "%s%s", ADDR, PRINTER_PATH);
+    snprintf(
+        printer_address,
+        strlen(ADDR) + strlen(PRINTER_PATH) + 1,
+        "%s%s",
+        ADDR,
+        PRINTER_PATH
+    );
 
+    // Set up libcurl
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
     // Check if the octoprint server is alive
     // If it's not then don't let the user open odc
     printer = octoprint_comm_recv(curl, printer_address, KEY);
-    if (check_alive(printer) == 1)
+    if (!printer)
     {
-        printf("Error: Can't contact the OctoPrint server.\n");
-        free(printer);
-        return 1;
+        fprintf(stderr, "Error: Can't contact the OctoPrint server.\n");
+        exit(1);
     }
 
-    #if 1
+    #if 1 // For debugging. Don't ask.
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
     curs_set(0); // Don't show terminal cursor
@@ -137,7 +146,6 @@ int main(void)
 
 
         /* === RENDER DASHBOARD === */
-
         int current_line = BORDER;
 
         // Print dashboard title
@@ -300,28 +308,22 @@ int main(void)
 
         sleep(REFRESH); // Wait a bit to do it again.
     
-        
+        // Clean up cJSON
         cJSON_Delete(job_json);
         cJSON_Delete(printer_json);
 
+        // Delete those dangling pointers!
         free(printer);
         free(job);
     }
     endwin(); // End curses mode
     #endif
 
-    // free(user);
-    // free(name);
-    // free(state);
-
-    // cJSON_Delete(job_json);
-    // cJSON_Delete(printer_json);
-
-    // IDK why this segfaults.
-    // free(printer);
-    // free(job);
-
+    // Clean up config
     config_destroy(&cfg);
-    octoprint_comm_end(curl);
+
+    // Clean up curl
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
     return 0;
 }

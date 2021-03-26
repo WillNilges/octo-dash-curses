@@ -2,18 +2,6 @@
 
 /* API */
 
-void init_string(struct string *s) {
-  s->len = 0;
-  s->ptr = malloc(s->len+1); // I need to free this.
-  if (s->ptr == NULL) {
-    fprintf(stderr, "malloc() failed\n");
-    exit(EXIT_FAILURE);
-  }
-  s->ptr[0] = '\0';
-}
-
-// TODO: Free string
-
 // Function to dump curl responses into strings.
 size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
   size_t new_len = s->len + size*nmemb;
@@ -29,83 +17,44 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s) {
   return size*nmemb;
 }
 
-void octoprint_comm_init(CURL* curl) {
-    curl_global_init(CURL_GLOBAL_ALL);
-    curl = curl_easy_init();
-    // if (!curl)
-    // {
-    //     fprintf(stderr, "Error! Could not initialize curl.");
-    //     curl_easy_cleanup(curl);
-    //     curl_global_cleanup();
-    // }
-}
-
 char* octoprint_comm_recv(CURL* curl, char* api_call, const char* key) {
     struct string s;
     CURLcode res;
+    struct curl_slist* list;
 
+    // Set up string
     s.len = 0;
     s.ptr = malloc(1);
-    struct curl_slist* list = NULL;
-    curl_easy_setopt(curl, CURLOPT_URL, api_call);
-    char keybase[32+11] = "X-Api-Key: "; // Memory really do be like that.
+    if (!s.ptr) 
+    {
+        fprintf(stderr, "String malloc failed!");
+        return NULL;
+    }
+
+    // Set up data object for curl arguments
+    list = NULL;
+
+    // Prepare API key
+    char keybase[32+11] = "X-Api-Key: ";
     strcat(keybase, key);
+
+    // Curl arguments
+    curl_easy_setopt(curl, CURLOPT_URL, api_call);
     list = curl_slist_append(list, keybase);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+    
+    // Perform the CURL
     res = curl_easy_perform(curl);
-    if (res != 0) fprintf(stderr, "Error: CURL failed.");
+    if (res != 0) {
+        fprintf(stderr, "Error: CURL failed.");
+        return NULL;
+    }
+
+    // Clean up and return result (remember to free that pointer later!)
     curl_slist_free_all(list);
     return s.ptr;
-}
-
-void octoprint_comm_end(CURL* curl) {
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-}
-
-// Query the octoprint server for data. This is a stupid CURL request, and does not check
-// if it was actually successful.
-char* call_octoprint(char* api_call, const char* key) {
-    // CURL* curl;
-    // CURLcode res;
-
-    // if (strlen(key) != 32) { // I believe all OctoPrint API keys are exactly 32 bytes long. 
-    //   printf("%s\n", MALFORMED); // I'm lazy, so this is how I'm gonna report errors.
-    //   return (char* ) MALFORMED;
-    // }
-
-    // // curl_global_init(); // TODO: FIX MEMORY LEAKS
-    // curl = curl_easy_init();
-    // if(curl) {
-    //     struct string s;
-    //     init_string(&s);
-
-    //     curl_easy_setopt(curl, CURLOPT_URL, api_call);
-    //     char keybase[32+11] = "X-Api-Key: ";
-    //     strcat(keybase, key);
-    //     list = curl_slist_append(list, keybase);
-    //     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-    //     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
-    //     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
-    //     res = curl_easy_perform(curl);
-    //     if (res != 0) {
-    //         printf("API call returned nonzero value.");
-    //         curl_slist_free_all(list);
-    //         curl_easy_cleanup(curl);
-    //         return (char* ) ERROR;
-    //     }
-    //     /* always cleanup */
-    //     curl_slist_free_all(list);
-    //     curl_easy_cleanup(curl);
-    //     curl_global_cleanup();
-    //     return s.ptr; // Yikes.
-    // }
-    // curl_easy_cleanup(curl);
-    // curl_global_cleanup();
-    return NULL;
 }
 
 // Checks contents of API reply for every possible issue.
