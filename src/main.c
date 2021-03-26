@@ -14,6 +14,9 @@
 #define DOUBLE_SPACING (7)
 #define TEMP_FORMATTING "%06.2f"
 
+#define JOB_PATH "/api/job"
+#define PRINTER_PATH "/api/printer"
+
 
 // Set up config variables, API variables
 config_t cfg;
@@ -27,15 +30,12 @@ int BORDER;
 int SCALE;
 
 
+// Strings for json blobs
 char* printer;
 char* job;
 
-
 // Job stuff
 cJSON* job_json;
-cJSON* job_job_json;
-cJSON* file_json;
-cJSON* progress_json;
 
 char* name;
 char* user;
@@ -45,10 +45,11 @@ int time_spent;
 
 // Printer stuff
 cJSON* printer_json;
-cJSON* json_temp;
 
-cJSON* json_print_head_temp;
-cJSON* json_bed_temp;
+double print_head_actual_temp;
+double print_head_target_temp;
+double bed_actual_temp;
+double bed_target_temp;
 
 int main(void)
 {
@@ -73,29 +74,25 @@ int main(void)
     config_lookup_int(&cfg, "border", &BORDER);
     config_lookup_int(&cfg, "scale", &SCALE);
 
-    // Let's get some basic info about what's printing.
-    char* job_path = "/api/job";
-    char job_address[strlen(ADDR) + strlen(job_path)];
-    strcpy(job_address, ADDR);
-    strcat(job_address, job_path);
+    // Let's get some basic info about what's printing
+    char job_address[strlen(ADDR) + strlen(JOB_PATH) + 1];
+    snprintf(job_address, strlen(ADDR) + strlen(JOB_PATH) + 1, "%s%s", ADDR, JOB_PATH);
 
     // Specify the API path to use
-    char* printer_path = "/api/printer";
-    char printer_address[strlen(ADDR) + strlen(printer_path)];
-    strcpy(printer_address, ADDR);
-    strcat(printer_address, printer_path);
+    char printer_address[strlen(ADDR) + strlen(PRINTER_PATH) + 1];
+    snprintf(printer_address, strlen(ADDR) + strlen(PRINTER_PATH) + 1, "%s%s", ADDR, PRINTER_PATH);
 
-    // Check if the octoprint server is alive.
-    // If it's not then don't let the user open odc.
+    // Check if the octoprint server is alive
+    // If it's not then don't let the user open odc
     printer = call_octoprint(printer_address, KEY);
     if (check_alive(printer) == 1)
     {
         printf("Error: Can't contact the OctoPrint server.\n");
+        free(printer);
         return 1;
     }
 
     #if 1
-    
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
     curs_set(0); // Don't show terminal cursor
@@ -116,41 +113,24 @@ int main(void)
     while(getch() != 'q')
     {
         /* === DATA COLLECTION === */
-
-        // Get some basic info about what's printing
         job = call_octoprint(job_address, KEY);
         job_json = cJSON_Parse(job);
-            job_job_json = cJSON_GetObjectItem(job_json, "job");
-                file_json = cJSON_GetObjectItem(job_job_json, "file");
-                    name = cJSON_GetObjectItem(file_json, "name")->valuestring;
-                user = cJSON_GetObjectItem(job_job_json, "user")->valuestring;
-                state = cJSON_GetObjectItem(job_json, "state")->valuestring;
-            progress_json = cJSON_GetObjectItem(job_json, "progress");
-                percent_complete = cJSON_GetObjectItem(progress_json, "completion")->valuedouble;
-                time_spent = cJSON_GetObjectItem(progress_json, "printTime")->valueint;
-        
-        // Get some basic info about the print head and print bed
+
+        user = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 5)->valuestring; 
+        name = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 3), 2)->valuestring;
+        state = cJSON_GetArrayItem(job_json, 2)->valuestring;
+        percent_complete = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 0)->valuedouble;
+        time_spent = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 2)->valuedouble;
+
         printer = call_octoprint(printer_address, KEY);
         printer_json = cJSON_Parse(printer);
-        json_temp = cJSON_GetObjectItem(printer_json, "temperature");
 
-        // TODO: Might want to make this (tool0) customizable, since there can be
-        // multiple tools.
+        bed_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 0)->valuedouble;
+        bed_target_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 2)->valuedouble;
 
-        // Get print head temps
-        json_print_head_temp = cJSON_GetObjectItem(json_temp, "tool0");
-        // cJSON* json_print_head_actual_temp = cJSON_GetObjectItem(json_print_head_temp, "actual");
-        // cJSON* json_print_head_target_temp = cJSON_GetObjectItem(json_print_head_temp, "target");
-        double print_head_actual_temp = cJSON_GetObjectItem(json_print_head_temp, "actual")->valuedouble;
-        double print_head_target_temp = cJSON_GetObjectItem(json_print_head_temp, "target")->valuedouble;
+        print_head_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 0)->valuedouble;
+        print_head_target_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 2)->valuedouble;
 
-
-        // Get print bed temps
-        json_bed_temp = cJSON_GetObjectItem(json_temp, "bed");
-        // cJSON* json_bed_actual_temp = cJSON_GetObjectItem(json_bed_temp, "actual");
-        // cJSON* json_bed_target_temp = cJSON_GetObjectItem(json_bed_temp, "target");
-        double bed_actual_temp = cJSON_GetObjectItem(json_bed_temp, "actual")->valuedouble;
-        double bed_target_temp = cJSON_GetObjectItem(json_bed_temp, "target")->valuedouble;
 
         /* === RENDER DASHBOARD === */
 
@@ -319,28 +299,17 @@ int main(void)
     endwin(); // End curses mode
     #endif
 
+    // free(user);
+    // free(name);
+    // free(state);
 
-    free(user);
-    free(name);
-    free(state);
-    
     cJSON_Delete(job_json);
-    // cJSON_Delete(job_job_json);
-    // cJSON_Delete(file_json);
-    // cJSON_Delete(progress_json);
-
-    // char* name;
-    // char* user;
-    // char* state;
-    // double percent_complete;
-    // int time_spent;
-
-    // Printer stuff
     cJSON_Delete(printer_json);
-    // cJSON_Delete(json_temp);
 
-    // cJSON_Delete(json_print_head_temp);
-    // cJSON_Delete(json_bed_temp);
+    // IDK why this segfaults.
+    // free(printer);
+    // free(job);
+
     config_destroy(&cfg);
     return 0;
 }
