@@ -17,42 +17,43 @@
 #define JOB_PATH "/api/job"
 #define PRINTER_PATH "/api/printer"
 
-
-// Set up config variables, API variables
-config_t cfg;
-const char* ADDR;
-const char* KEY;
-const char* DASHBOARD_MESSAGE;
-const char* NO_PRINT_MESSSAGE;
-
-int REFRESH;
-int BORDER;
-int SCALE;
-
-
-// Strings for json blobs
-char* printer;
-char* job;
-
-// Job stuff
-cJSON* job_json;
-
-char* name;
-char* user;
-char* state;
-double percent_complete;
-int time_spent;
-
-// Printer stuff
-cJSON* printer_json;
-
-double print_head_actual_temp;
-double print_head_target_temp;
-double bed_actual_temp;
-double bed_target_temp;
-
 int main(void)
 {
+
+    // Set up config variables, API variables
+    config_t cfg;
+    const char* ADDR;
+    const char* KEY;
+    const char* DASHBOARD_MESSAGE;
+    const char* NO_PRINT_MESSSAGE;
+
+    int REFRESH;
+    int BORDER;
+    int SCALE;
+
+
+    // Strings for json blobs
+    char* printer;
+    char* job;
+    CURL* curl;
+
+    // Job stuff
+    cJSON* job_json;
+
+    char* name;
+    char* user;
+    char* state;
+    double percent_complete;
+    int time_spent;
+
+    // Printer stuff
+    cJSON* printer_json;
+
+    double print_head_actual_temp;
+    double print_head_target_temp;
+    double bed_actual_temp;
+    double bed_target_temp;
+
     // Grab some configs
     config_init(&cfg);
 
@@ -82,9 +83,12 @@ int main(void)
     char printer_address[strlen(ADDR) + strlen(PRINTER_PATH) + 1];
     snprintf(printer_address, strlen(ADDR) + strlen(PRINTER_PATH) + 1, "%s%s", ADDR, PRINTER_PATH);
 
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+
     // Check if the octoprint server is alive
     // If it's not then don't let the user open odc
-    printer = call_octoprint(printer_address, KEY);
+    printer = octoprint_comm_recv(curl, printer_address, KEY);
     if (check_alive(printer) == 1)
     {
         printf("Error: Can't contact the OctoPrint server.\n");
@@ -113,7 +117,7 @@ int main(void)
     while(getch() != 'q')
     {
         /* === DATA COLLECTION === */
-        job = call_octoprint(job_address, KEY);
+        job = octoprint_comm_recv(curl, job_address, KEY);
         job_json = cJSON_Parse(job);
 
         user = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 0), 5)->valuestring; 
@@ -122,7 +126,7 @@ int main(void)
         percent_complete = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 0)->valuedouble;
         time_spent = cJSON_GetArrayItem(cJSON_GetArrayItem(job_json, 1), 2)->valuedouble;
 
-        printer = call_octoprint(printer_address, KEY);
+        printer = octoprint_comm_recv(curl, printer_address, KEY);
         printer_json = cJSON_Parse(printer);
 
         bed_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 0), 0)->valuedouble;
@@ -295,6 +299,13 @@ int main(void)
         refresh(); // Update the screen
 
         sleep(REFRESH); // Wait a bit to do it again.
+    
+        
+        cJSON_Delete(job_json);
+        cJSON_Delete(printer_json);
+
+        free(printer);
+        free(job);
     }
     endwin(); // End curses mode
     #endif
@@ -303,13 +314,14 @@ int main(void)
     // free(name);
     // free(state);
 
-    cJSON_Delete(job_json);
-    cJSON_Delete(printer_json);
+    // cJSON_Delete(job_json);
+    // cJSON_Delete(printer_json);
 
     // IDK why this segfaults.
     // free(printer);
     // free(job);
 
     config_destroy(&cfg);
+    octoprint_comm_end(curl);
     return 0;
 }

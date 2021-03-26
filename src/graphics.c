@@ -19,7 +19,7 @@ const char* OWNER      = "       Owner: ";
 const char* PRINT_HEAD = "  Print head: ";
 const char* BED        = "         Bed: ";
 
-// Some dumb ncurses shit
+// Half-baked ncurses functions
 
 WINDOW* create_newwin(int height, int width, int starty, int startx)
 {
