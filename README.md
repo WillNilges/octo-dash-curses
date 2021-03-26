@@ -25,6 +25,7 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - libcurl-devel
 - ncurses-devel
 - libconfig-devel
+- cjson-devel
 
 #### Raspbian
 
@@ -32,6 +33,7 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - libconfig-dev
 - libncurses-dev
 - libcurl4-gnutls-dev
+- libcjson-dev
 
 ### Building
 
