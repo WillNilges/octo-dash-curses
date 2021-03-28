@@ -105,6 +105,13 @@ int main(void)
         exit(1);
     }
 
+    job = octoprint_comm_recv(curl, job_address, KEY);
+    
+
+    printf(job);
+
+    printf(printer);
+
     #if 1 // For debugging. Don't ask.
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
@@ -165,7 +172,7 @@ int main(void)
         attron(A_BOLD);
         printw(PRINT_NAME);
         attroff(A_BOLD);
-        if (strcmp(name, "null") != 0)
+        if (strcmp(state, "Printing") == 0)
             printw(name);
         else
             printw("N/A");
@@ -176,7 +183,7 @@ int main(void)
         attron(A_BOLD);
         printw(OWNER);
         attroff(A_BOLD);
-        if (strcmp(user, "null") != 0)
+        if (strcmp(state, "Printing") == 0)
             printw(user);
         else
             printw("N/A");
@@ -209,8 +216,7 @@ int main(void)
         int progress_bar_start = (max_col / 2) - (SCALE / 2);
         current_line += 3;
         int prog_zone;
-        if (percent_complete)
-        {
+        if (!percent_complete) percent_complete = 0.0;
             // Print printer state
             move(current_line - 1, progress_bar_start + 1);
             clrtoeol();
@@ -220,9 +226,9 @@ int main(void)
                 printw(state);
 
             // Display time elapsed printing
-            move(current_line - 1, (max_col / 2) + (SCALE / 2) - 7);
             if (time_spent)
             {
+                move(current_line - 1, (max_col / 2) + (SCALE / 2) - 7);
                 struct Duration parsed_time_spent = format_time(time_spent);
                 printw(
                     "%02d:%02d:%02d",
@@ -232,7 +238,10 @@ int main(void)
                 );
             }
             else
-                printw("N/A");
+            {
+                move(current_line - 1, (max_col / 2) + (SCALE / 2) - strlen("No print is queued.") + 1);
+                printw("No print is queued.");
+            }
 
             // Display percent complete
             move(current_line + 1, (max_col / 2) + (SCALE / 2) - 3);
@@ -244,7 +253,9 @@ int main(void)
             //Move to the start of the bar and clear the line to re-draw the bar
             move(current_line, progress_bar_start);
             clrtoeol();
+            attron(A_BOLD);
             addch('[');
+            attroff(A_BOLD);
 
             // Draw the progress into the print
             for (int i = 1; i <= (percent_complete / 100) * SCALE; i++)
@@ -285,16 +296,16 @@ int main(void)
             for (int digit = 0; digit < 3; digit++)
                 draw_big_num(big_numbers[fmtted_percent_complete[digit] - '0'].num_data, current_line, big_num_x + (10*(digit+1)));
             draw_big_num(big_numbers[10].num_data, current_line, big_num_x + 40);
-        }
-        else
-        {
-            move(current_line - 1, (max_col / 2) - (strlen("Progress: ") / 2));
-            attron(A_BOLD);
-            printw("Progress: ");
-            attroff(A_BOLD);
-            move(current_line - 1, (max_col / 2));
-            printw("N/A");
-        }
+        // }
+        // else
+        // {   
+        //     move(current_line - 1, (max_col / 2) - (strlen("Progress: ") / 2));
+        //     attron(A_BOLD);
+        //     printw("Progress: ");
+        //     attroff(A_BOLD);
+        //     move(current_line - 1, (max_col / 2));
+        //     printw("N/A");
+        // }
         
         current_line += 6;
         move(current_line, BORDER);
