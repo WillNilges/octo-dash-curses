@@ -105,13 +105,6 @@ int main(void)
         exit(1);
     }
 
-    job = octoprint_comm_recv(curl, job_address, KEY);
-    
-
-    printf(job);
-
-    printf(printer);
-
     #if 1 // For debugging. Don't ask.
     setlocale(LC_ALL, "");
     initscr();   // Start ncurses
@@ -169,10 +162,12 @@ int main(void)
         // Show the file name of the current print
         current_line += 2;
         move(current_line, BORDER);
+        clrtoeol();
         attron(A_BOLD);
         printw(PRINT_NAME);
         attroff(A_BOLD);
-        if (strcmp(state, "Printing") == 0)
+        // Pretty sure that we'll have a percentage if there is a file loaded.
+        if (percent_complete)
             printw(name);
         else
             printw("N/A");
@@ -180,10 +175,11 @@ int main(void)
         // Show the username of whoever started the print
         current_line++;
         move(current_line, BORDER);
+        clrtoeol();
         attron(A_BOLD);
         printw(OWNER);
         attroff(A_BOLD);
-        if (strcmp(state, "Printing") == 0)
+        if (percent_complete)
             printw(user);
         else
             printw("N/A");
@@ -245,6 +241,7 @@ int main(void)
 
             // Display percent complete
             move(current_line + 1, (max_col / 2) + (SCALE / 2) - 3);
+            clrtoeol();
             int rounded_percent = (int) round(percent_complete);
             printw("%03d", rounded_percent);
             printw("%%\n");
