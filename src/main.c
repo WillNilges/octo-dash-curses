@@ -54,10 +54,25 @@ int main(void)
     double bed_target_temp;
 
     /* === CONFIG PARSING === */
+    // Location of config file when properly installed.
+    char* config_path = "/etc/odc.cfg";
+
+    // Check if there's a config file in the current directory to override it.
+    if(access("odc.cfg", F_OK) == 0)
+    {
+        config_path = "odc.cfg";
+    } else if (access(config_path, F_OK) != 0)
+    {
+        //Crash if the config file does not exist.
+        fprintf(stderr, "Error: Config file not found. Provide one here, or at /etc/odc.cfg.\n");
+        return 1;
+    }
+
+    // Grab some configs
     config_init(&cfg);
 
     // Read the config file. If there is an error, report it and exit.
-    if(! config_read_file(&cfg, "api.cfg"))
+    if(! config_read_file(&cfg, config_path))
     {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
         config_error_line(&cfg), config_error_text(&cfg));
@@ -151,12 +166,16 @@ int main(void)
         // Print dashboard title
         move(current_line, 0);
         clrtoeol();
-        move(current_line, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
         attron(A_STANDOUT);
-        if (strcmp(state, "Printing") == 0)
+        if (strcmp(state, "Printing\n") == 0)
+        {
+            move(1, max_col/2 - strlen(DASHBOARD_MESSAGE)/2);
             printw(DASHBOARD_MESSAGE);
-        else 
-            printw(NO_PRINT_MESSSAGE);
+        }
+        else {
+            move(1, max_col/2 - strlen(NO_PRINT_MESSSAGE)/2);
+            printw(NO_PRINT_MESSSAGE);   
+        }
         attroff(A_STANDOUT);
 
         // Show the file name of the current print
