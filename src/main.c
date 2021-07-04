@@ -19,6 +19,8 @@
 
 int main(void)
 {
+    // Error variable (TODO: Add error enum if you ever expand this)
+    int error = 0;
 
     // Set up config variables, API variables
     config_t cfg;
@@ -114,11 +116,15 @@ int main(void)
     // Check if the octoprint server is alive
     // If it's not then don't let the user open odc
     printer = octoprint_comm_recv(curl, printer_address, KEY);
-    if (!printer)
+
+    // We most definitely should NOT be getting HTML back from the
+    // Octoprint API. Crash if we do.
+    if (strstr(printer, "<html>") != NULL)
     {
-        fprintf(stderr, "Error: Can't contact the OctoPrint server.\n");
-        exit(1);
+        printf("Error: Could not contact OctoPrint server.\n");
+        return 1;
     }
+
 
     #if 1 // For debugging. Don't ask.
     setlocale(LC_ALL, "");
@@ -135,6 +141,7 @@ int main(void)
     // Get bounds of display
     int max_row,max_col;
     getmaxyx(stdscr, max_row, max_col);
+    printf("Width is %d. Height is %d\n", max_col, max_row);
     
     timeout(0);
 
@@ -159,6 +166,14 @@ int main(void)
         print_head_actual_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 0)->valuedouble;
         print_head_target_temp = cJSON_GetArrayItem(cJSON_GetArrayItem(cJSON_GetArrayItem(printer_json, 2), 1), 2)->valuedouble;
 
+        /* === IDIOT CHECKING === */
+        // We most definitely should NOT be getting HTML back from the
+        // Octoprint API. Crash if we do.
+        if (strstr(printer, "<html>") != NULL || strstr(job, "<html>") != NULL)
+        {
+            error = 1;
+            break;
+        }
 
         /* === RENDER DASHBOARD === */
         int current_line = BORDER/2;
@@ -352,5 +367,9 @@ int main(void)
     // Clean up curl
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+
+    if (error == 1) {
+        printf("Error: Could not contact OctoPrint server.\n");
+    }
     return 0;
 }
