@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include <unistd.h>
 #include <libconfig.h>
 #include <ncurses.h>
 #include <locale.h>
 #include <cjson/cJSON.h>
+#include <getopt.h>
 
 #include "api.h"
 #include "graphics.h"
@@ -17,8 +17,59 @@
 #define JOB_PATH "/api/job"
 #define PRINTER_PATH "/api/printer"
 
-int main(void)
+int main(int argc, char* argv[])
 {
+    /*------------------------------------------------------------------------
+        These variables are used to control the getopt_long_only command line 
+        parsing utility.  
+    ------------------------------------------------------------------------*/
+    char* config_path = "/etc/odc.cfg"; // Location of config file when properly installed.
+
+    int rc;
+
+    // getopt_long stores the option index here. 
+    int option_index = 0;
+
+    // This contains the short command line parameters list 
+    char *getoptOptions = "f:";
+
+    /* This contains the long command line parameter list, it should mostly 
+        match the short list.  Note: get_opt_long is not really needed       */
+    struct option long_options[] = {
+        /* These options don’t set a flag.
+            We distinguish them by their indices. */
+        {"file",    required_argument, 0, 'f'},
+        {0, 0, 0, 0}
+    };
+            
+    // opterr = 1;           // Enable automatic error reporting 
+    while ((rc = getopt_long_only(argc, argv, getoptOptions, long_options, 
+                                                    &option_index)) != -1) {
+        /* Detect the end of the options. */
+        switch (rc)
+        {
+        case 'f':  
+            config_path = optarg;
+            break;
+            
+        case '?':  // Handled by the default error handler 
+            break;
+
+        default:
+            printf ("Internal error: undefined option %0xX\n", rc);
+            exit(1);
+        } // End switch 
+    } // end while 
+
+    /*------------------------------------------------------------------------
+        Check for command line syntax errors like not all parameters specified
+        or the first parameter is zero.
+    ------------------------------------------------------------------------*/
+    if ((optind < argc) || (NULL == config_path)) {
+        fprintf(stderr, "A minimal, rugged dashboard for your OctoPrint server. \n");
+        return 1;
+    } /* End if error */
+
     // Error variable (TODO: Add error enum if you ever expand this)
     int error = 0;
 
@@ -56,13 +107,13 @@ int main(void)
     double bed_target_temp;
 
     /* === CONFIG PARSING === */
-    // Location of config file when properly installed.
-    char* config_path = "/etc/odc.cfg";
-
-    // Check if there's a config file in the current directory to override it.
-    if(access("odc.cfg", F_OK) == 0)
+    if (access(config_path, F_OK) != 0)
     {
-        config_path = "odc.cfg";
+        fprintf(stderr, "Error: The provided config file does not exist.\n");
+        return 1;
+    }else if (access("odc.cfg", F_OK) == 0)
+    {
+        config_path = "odc.cfg";     // Check if there's a config file in the current directory to override the default location.
     } else if (access(config_path, F_OK) != 0)
     {
         //Crash if the config file does not exist.
