@@ -1,2 +1,2 @@
 #!/bin/bash
-podman run --rm -it -v./:/odc --name=odc-builder odc-builder
+podman run --rm -it -v$(pwd):/odc --name=odc-builder odc-builder
