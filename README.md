@@ -27,6 +27,11 @@ ODC queries your OctoPrint server for printer status and displays the most relev
 - libconfig-devel
 - cjson-devel
 
+#### Arch Linux
+- base-devel
+- libconfig
+- cjson
+
 #### Raspbian
 
 - gcc
